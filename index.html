@@ -401,10 +401,11 @@ tr:hover td{background:var(--surface2);}
     </div>
     <div class="g3">
       <div class="fg"><label>P1 prior work fee owed (CA$)</label><input id="s-prior" type="number" step="0.01" placeholder="0.00"></div>
-      <div></div>
+      <div class="fg"><label>Company-card cutoff date</label><input id="s-rcompcard" type="date"></div>
       <div></div>
     </div>
-    <p style="font-size:11px;color:var(--text3);margin-bottom:.5rem;">Prior work fee is a one-time lump sum owed to P1 for setup work before the partnership. Adds to P1's total on the Dashboard. Reduce this number when paid back.</p>
+    <p style="font-size:11px;color:var(--text3);margin-bottom:.25rem;">Prior work fee is a one-time lump sum owed to P1 for setup work before the partnership. Adds to P1's total on the Dashboard. Reduce this number when paid back.</p>
+    <p style="font-size:11px;color:var(--text3);margin-bottom:.5rem;">Cutoff date: from this date forward, the reimbursement buyer's bids count as ordinary partnership expenses only — no partner reimbursement. Past sales (before this date) still route back to the configured partner. Leave blank to disable the cutoff entirely.</p>
     <button class="btn btnp" onclick="saveReimburse()">Save</button>
   </div>
   <div class="card">
@@ -445,7 +446,7 @@ tr:hover td{background:var(--surface2);}
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwgEHL6qMiSyd558fKf1ODDcre-mRn-aWjFynylESdfp7j1GxvgSYwTlp5tuW_AOA7Z/exec';
 
-let D = { inv:[], shows:[], sales:[], prizes:[], tips:[], imports:[], audit:[], cfg:{p1:'Luca',p2:'Matthew Ciampa',split:40,disc:17.5,wnfee:8,othfee:5,valuationPct:85,jointRecoupShare:50,autoImportNotifyMode:'problems_only',reimbursementBuyer:'6ixkilla',reimbursementBuyerOwedTo:'P1',priorWorkFee:0} };
+let D = { inv:[], shows:[], sales:[], prizes:[], tips:[], imports:[], audit:[], cfg:{p1:'Luca',p2:'Matthew Ciampa',split:40,disc:17.5,wnfee:8,othfee:5,valuationPct:85,jointRecoupShare:50,autoImportNotifyMode:'problems_only',reimbursementBuyer:'6ixkilla',reimbursementBuyerOwedTo:'P1',reimbursementBuyerCompanyCardSince:'',priorWorkFee:0} };
 let CH = {};
 
 // ── AUTH STATE ────────────────────────────────────────────────
@@ -642,6 +643,7 @@ async function loadAll() {
     D.cfg.autoImportNotifyMode = data.config.autoImportNotifyMode||'problems_only';
     D.cfg.reimbursementBuyer = (data.config.reimbursementBuyer===''||data.config.reimbursementBuyer===undefined)?'6ixkilla':data.config.reimbursementBuyer;
     D.cfg.reimbursementBuyerOwedTo = data.config.reimbursementBuyerOwedTo||'P1';
+    D.cfg.reimbursementBuyerCompanyCardSince = data.config.reimbursementBuyerCompanyCardSince || '';
     D.cfg.priorWorkFee = N(data.config.priorWorkFee);
     if (isNaN(D.cfg.priorWorkFee)) D.cfg.priorWorkFee = 0;
   }
@@ -722,14 +724,31 @@ function showPL(sh){
   // to the owed-to partner. Whatnot's fee on those bids is shared by both
   // partners proportionally (because it's a real partnership cost).
   const reimbBuyer = (D.cfg.reimbursementBuyer||'').toLowerCase().trim();
-  let sixkillaExpense = 0;
+  const compCardSince = (D.cfg.reimbursementBuyerCompanyCardSince||'').trim();
+  let sixkillaExpense = 0;                  // total expense across both buckets — reduces profit
   let sixkillaCount = 0;
+  let sixkillaReimbursable = 0;             // pre-cutoff portion — routes back to a partner
+  let sixkillaReimbursableCount = 0;
+  let sixkillaCompanyCard = 0;              // on-or-after-cutoff portion — pure partnership expense
+  let sixkillaCompanyCardCount = 0;
   if (reimbBuyer) {
     (D.sales||[]).forEach(s => {
       if (s.showId !== sh.id) return;
       if ((s.buyer||'').toLowerCase().trim() !== reimbBuyer) return;
-      sixkillaExpense += N(s.price);
+      const price = N(s.price);
+      sixkillaExpense += price;
       sixkillaCount++;
+      // ISO date strings sort lexicographically like real dates.
+      // Empty cutoff (or empty sale date) keeps the sale in the reimbursable bucket — legacy behavior.
+      const saleDate = (s.date||'').trim();
+      const onCompanyCard = !!(compCardSince && saleDate && saleDate >= compCardSince);
+      if (onCompanyCard) {
+        sixkillaCompanyCard += price;
+        sixkillaCompanyCardCount++;
+      } else {
+        sixkillaReimbursable += price;
+        sixkillaReimbursableCount++;
+      }
     });
   }
 
@@ -782,11 +801,14 @@ function showPL(sh){
   const profitToLuca = profit * (lucaPct / 100);
   const profitToMat  = profit * (matPct / 100);
 
-  // Route the reimbursement 100% back to the owed-to partner.
-  // Default is P1 (Luca). Configurable via Settings.
+  // Route ONLY the reimbursable portion back to the owed-to partner.
+  // Post-cutoff (company-card) sales are pure partnership expenses — they
+  // still reduce profit via totalCost, but nobody gets reimbursed.
   const owedTo = (D.cfg.reimbursementBuyerOwedTo || 'P1').toUpperCase();
-  const sixkillaToLuca = owedTo === 'P1' ? sixkillaExpense : 0;
-  const sixkillaToMat  = owedTo === 'P2' ? sixkillaExpense : 0;
+  const sixkillaToLuca = owedTo === 'P1' ? sixkillaReimbursable : 0;
+  const sixkillaToMat  = owedTo === 'P2' ? sixkillaReimbursable : 0;
+  const sixkillaToLucaCount = owedTo === 'P1' ? sixkillaReimbursableCount : 0;
+  const sixkillaToMatCount  = owedTo === 'P2' ? sixkillaReimbursableCount : 0;
 
   const totalToLuca = profitToLuca + valuationToLuca + sixkillaToLuca;
   const totalToMat  = profitToMat  + valuationToMat  + sixkillaToMat;
@@ -795,7 +817,11 @@ function showPL(sh){
     rev, tipsTotal,
     prizeCost, prizeCostAll, giveawayCost,
     packCost, otherCost, fees, totalCost,
-    sixkillaExpense, sixkillaCount, sixkillaToLuca, sixkillaToMat,
+    sixkillaExpense, sixkillaCount,
+    sixkillaReimbursable, sixkillaReimbursableCount,
+    sixkillaCompanyCard, sixkillaCompanyCardCount,
+    sixkillaToLuca, sixkillaToMat,
+    sixkillaToLucaCount, sixkillaToMatCount,
     profit,
     lucaPct, matPct,
     profitToLuca, profitToMat,
@@ -832,7 +858,9 @@ function renderDash(){
   let showLucaProfit=0, showMatProfit=0;
   let showLucaValuation=0, showMatValuation=0;
   let showLucaReimburse=0, showMatReimburse=0;
+  let showLucaReimburseCount=0, showMatReimburseCount=0;
   let showSixkillaTotal=0, showSixkillaCount=0;
+  let showSixkillaCompanyTotal=0, showSixkillaCompanyCount=0;
   D.shows.forEach(sh=>{
     const pl=showPL(sh);
     showRev+=pl.rev;
@@ -844,8 +872,12 @@ function renderDash(){
     showMatValuation+=pl.valuationToMat;
     showLucaReimburse+=pl.sixkillaToLuca;
     showMatReimburse+=pl.sixkillaToMat;
+    showLucaReimburseCount+=pl.sixkillaToLucaCount||0;
+    showMatReimburseCount+=pl.sixkillaToMatCount||0;
     showSixkillaTotal+=pl.sixkillaExpense;
     showSixkillaCount+=pl.sixkillaCount;
+    showSixkillaCompanyTotal+=pl.sixkillaCompanyCard||0;
+    showSixkillaCompanyCount+=pl.sixkillaCompanyCardCount||0;
   });
 
   // Non-show sales profit (BIN/standalone) — split per global default
@@ -874,12 +906,12 @@ function renderDash(){
   const lucaLines = [];
   lucaLines.push('Profit share: ' + fmt(salesLuca+showLucaProfit));
   if (showLucaValuation > 0) lucaLines.push('Card valuations: ' + fmt(showLucaValuation));
-  if (showLucaReimburse > 0) lucaLines.push(buyerLabel + ' reimbursed: ' + fmt(showLucaReimburse) + ' (' + showSixkillaCount + ' txns)');
+  if (showLucaReimburse > 0) lucaLines.push(buyerLabel + ' reimbursed: ' + fmt(showLucaReimburse) + ' (' + showLucaReimburseCount + ' txn' + (showLucaReimburseCount===1?'':'s') + ')');
   if (priorFee > 0)          lucaLines.push('Prior work fee: ' + fmt(priorFee));
   const matLines = [];
   matLines.push('Profit share: ' + fmt(salesMat+showMatProfit));
   if (showMatValuation > 0) matLines.push('Card valuations: ' + fmt(showMatValuation));
-  if (showMatReimburse > 0) matLines.push(buyerLabel + ' reimbursed: ' + fmt(showMatReimburse));
+  if (showMatReimburse > 0) matLines.push(buyerLabel + ' reimbursed: ' + fmt(showMatReimburse) + ' (' + showMatReimburseCount + ' txn' + (showMatReimburseCount===1?'':'s') + ')');
 
   $('psplit').innerHTML=`<div class="g2">
     <div class="split-card">
@@ -988,7 +1020,10 @@ function renderPartnerDetail(){
       const sub = [];
       if (Math.abs(profitCut) > 0.005) sub.push(['Profit cut ('+splitLabel+' of '+fmt(pl.profit)+')', profitCut, 'var(--text)']);
       if (valuation > 0)               sub.push(['Card valuations (owner share of prizes used)', valuation, 'var(--amber)']);
-      if (reimburse > 0)               sub.push([buyerLabel+' reimbursement ('+pl.sixkillaCount+' txn'+(pl.sixkillaCount===1?'':'s')+')', reimburse, 'var(--purple)']);
+      if (reimburse > 0) {
+        const reimburseCount = isP1 ? (pl.sixkillaToLucaCount||0) : (pl.sixkillaToMatCount||0);
+        sub.push([buyerLabel+' reimbursement ('+reimburseCount+' txn'+(reimburseCount===1?'':'s')+')', reimburse, 'var(--purple)']);
+      }
       if (!sub.length) sub.push(['(no contribution from this show)', 0, 'var(--text3)']);
 
       showRowsHTML += sub.map(([lbl, amt, col]) =>
@@ -1711,7 +1746,8 @@ function renderDetailPanel(showId){
       <div class="detail-line"><span class="lbl">− Manual prize valuations</span><span class="val" style="color:var(--amber);">−${fmt(pl.prizeCost)}</span></div>
       <div class="detail-line"><span class="lbl">− Pack / box cost</span><span class="val" style="color:${pl.packCost>0?'var(--red)':'var(--text3)'};">−${fmt(pl.packCost)}</span></div>
       <div class="detail-line"><span class="lbl">− Other costs</span><span class="val" style="color:${pl.otherCost>0?'var(--red)':'var(--text3)'};">−${fmt(pl.otherCost)}</span></div>
-      ${pl.sixkillaExpense>0?`<div class="detail-line"><span class="lbl">− @${D.cfg.reimbursementBuyer} bids reimbursement (${pl.sixkillaCount} txn${pl.sixkillaCount===1?'':'s'}, owed to ${D.cfg.reimbursementBuyerOwedTo==='P2'?D.cfg.p2:D.cfg.p1})</span><span class="val" style="color:var(--purple);">−${fmt(pl.sixkillaExpense)}</span></div>`:''}
+      ${pl.sixkillaReimbursable>0?`<div class="detail-line"><span class="lbl">− @${D.cfg.reimbursementBuyer} bids — reimbursed to ${D.cfg.reimbursementBuyerOwedTo==='P2'?D.cfg.p2:D.cfg.p1} (${pl.sixkillaReimbursableCount} txn${pl.sixkillaReimbursableCount===1?'':'s'})</span><span class="val" style="color:var(--purple);">−${fmt(pl.sixkillaReimbursable)}</span></div>`:''}
+      ${pl.sixkillaCompanyCard>0?`<div class="detail-line"><span class="lbl">− @${D.cfg.reimbursementBuyer} bids — company card (${pl.sixkillaCompanyCardCount} txn${pl.sixkillaCompanyCardCount===1?'':'s'})</span><span class="val" style="color:var(--text2);">−${fmt(pl.sixkillaCompanyCard)}</span></div>`:''}
       <div class="detail-line total"><span class="lbl">Net profit</span><span class="val ${pl.profit>=0?'g':'r'}" style="color:${pl.profit>=0?'var(--green)':'var(--red)'};">${fmt(pl.profit)}</span></div>
       ${pl.giveawayCost>0?`<div style="font-size:11px;color:var(--text3);margin-top:8px;font-style:italic;">Note: ${fmt(pl.giveawayCost)} in auto-imported giveaways excluded from profit math (manual prizes only).</div>`:''}
     </div>
@@ -2590,6 +2626,7 @@ function applySettingsUI(){
   sv('s-notify', c.autoImportNotifyMode || 'problems_only');
   sv('s-rbuyer', c.reimbursementBuyer || '');
   sv('s-rowed',  c.reimbursementBuyerOwedTo || 'P1');
+  sv('s-rcompcard', c.reimbursementBuyerCompanyCardSince || '');
   sv('s-prior',  c.priorWorkFee || 0);
 }
 async function saveSettings(){
@@ -2621,11 +2658,13 @@ async function saveNotify(){
 async function saveReimburse(){
   const buyer = ($('s-rbuyer').value||'').trim();
   const owed = $('s-rowed').value || 'P1';
+  const compCard = ($('s-rcompcard').value || '').trim();
   const prior = N($('s-prior').value);
   showLdr('Saving...');
   await api({action:'saveConfig',data:{
     reimbursementBuyer: buyer,
     reimbursementBuyerOwedTo: owed,
+    reimbursementBuyerCompanyCardSince: compCard,
     priorWorkFee: prior.toFixed(2)
   }});
   await loadAll();hideLdr();alert('Reimbursement settings saved.');
