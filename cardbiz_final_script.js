@@ -73,10 +73,14 @@ function doPost(e) {
         r = addRow('Inventory', body.data);
         logAudit_(user, 'addInventory', 'Inventory', r.id, body.data);
         return jsonOut(r);
-      case 'updateInventory':
+      case 'updateInventory': {
+        const diff = diffRow_('Inventory', body.id, body.data);
         r = updateRow('Inventory', body.id, body.data);
-        logAudit_(user, 'updateInventory', 'Inventory', body.id, body.data);
+        if (r.success && diff && Object.keys(diff).length > 0) {
+          logAudit_(user, 'updateInventory', 'Inventory', body.id, diff);
+        }
         return jsonOut(r);
+      }
       case 'deleteInventory':
         r = deleteRow('Inventory', body.id);
         logAudit_(user, 'deleteInventory', 'Inventory', body.id, '(deleted)');
@@ -87,10 +91,14 @@ function doPost(e) {
         r = addRow('Shows', body.data);
         logAudit_(user, 'addShow', 'Show', r.id, body.data);
         return jsonOut(r);
-      case 'updateShow':
+      case 'updateShow': {
+        const diff = diffRow_('Shows', body.id, body.data);
         r = updateRow('Shows', body.id, body.data);
-        logAudit_(user, 'updateShow', 'Show', body.id, body.data);
+        if (r.success && diff && Object.keys(diff).length > 0) {
+          logAudit_(user, 'updateShow', 'Show', body.id, diff);
+        }
         return jsonOut(r);
+      }
       case 'deleteShow':
         r = deleteRow('Shows', body.id);
         logAudit_(user, 'deleteShow', 'Show', body.id, '(deleted)');
@@ -111,10 +119,14 @@ function doPost(e) {
         r = addRow('Prizes', body.data);
         logAudit_(user, 'addPrize', 'Prize', r.id, body.data);
         return jsonOut(r);
-      case 'updatePrize':
+      case 'updatePrize': {
+        const diff = diffRow_('Prizes', body.id, body.data);
         r = updateRow('Prizes', body.id, body.data);
-        logAudit_(user, 'updatePrize', 'Prize', body.id, body.data);
+        if (r.success && diff && Object.keys(diff).length > 0) {
+          logAudit_(user, 'updatePrize', 'Prize', body.id, diff);
+        }
         return jsonOut(r);
+      }
       case 'deletePrize':
         r = deleteRow('Prizes', body.id);
         logAudit_(user, 'deletePrize', 'Prize', body.id, '(deleted)');
@@ -360,6 +372,36 @@ function deleteRow(sheetName, id) {
     }
   }
   return { success: false, error: 'Row not found' };
+}
+
+// Diff a pending update against the existing row on disk.
+// Returns null if the row isn't found, an empty object {} if nothing
+// actually changed (useful for skipping no-op audit writes), or
+// {fieldName: {from, to}} for each field whose value differs.
+// Only inspects fields that appear in newData — fields the caller didn't
+// touch are ignored. String() conversion handles type drift (sheet
+// numbers vs incoming string values, etc.).
+function diffRow_(sheetName, id, newData) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return null;
+  const allData = sheet.getDataRange().getValues();
+  if (allData.length < 2) return null;
+  const headers = allData[0];
+  const idCol = headers.indexOf('id');
+  if (idCol < 0) return null;
+  for (let i = 1; i < allData.length; i++) {
+    if (String(allData[i][idCol]) !== String(id)) continue;
+    const diff = {};
+    headers.forEach((h, ci) => {
+      if (newData[h] === undefined) return;
+      const oldVal = String(allData[i][ci] === null || allData[i][ci] === undefined ? '' : allData[i][ci]);
+      const newVal = String(newData[h] === null || newData[h] === undefined ? '' : newData[h]);
+      if (oldVal !== newVal) diff[h] = { from: oldVal, to: newVal };
+    });
+    return diff;
+  }
+  return null;
 }
 
 function getAllData() {

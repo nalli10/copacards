@@ -2077,6 +2077,14 @@ function cancelPrizeEdit(showId){
   showDetail(showId);
 }
 
+// Open the show detail modal with a specific prize already in edit mode.
+// Used by clickable links in the Audit log entity column.
+function openPrizeFromAudit(prizeId, showId){
+  if (!prizeId || !showId) return;
+  EDITING_PRIZE_ID = prizeId;
+  showDetail(showId);
+}
+
 async function savePrizeEdit(prizeId, showId){
   const card = ($('pe-card').value || '').trim();
   if (!card) { alert('Card name required'); return; }
@@ -2451,21 +2459,72 @@ function renderAudit(){
            d.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',hour12:false});
   };
 
-  // Escape HTML in details (it's user-provided JSON / strings)
-  const esc = (s) => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // HTML-escape (text + attribute safe — also escapes ")
+  const esc = (s) => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  // Parse the details column as JSON if possible
+  const parseDetails = (s) => {
+    if (!s) return null;
+    try { return JSON.parse(s); } catch(e) { return null; }
+  };
+
+  // Detect diff format: every value is an object with from/to keys
+  const isDiff = (obj) => {
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return false;
+    const vals = Object.values(obj);
+    if (!vals.length) return false;
+    return vals.every(v => v && typeof v === 'object' && 'from' in v && 'to' in v);
+  };
+
+  // Render diff as colored HTML: "field: oldVal → newVal, ..."
+  const renderDiffHTML = (diffObj) => {
+    return Object.entries(diffObj).map(([field, change]) => {
+      const from = (change.from === '' || change.from === undefined || change.from === null) ? '(empty)' : String(change.from);
+      const to   = (change.to   === '' || change.to   === undefined || change.to   === null) ? '(empty)' : String(change.to);
+      return `<span style="font-weight:500;color:var(--text);">${esc(field)}</span>: <span style="color:var(--red);">${esc(from)}</span> → <span style="color:var(--green);">${esc(to)}</span>`;
+    }).join(', ');
+  };
+
+  // Same but plain text — used for the row's hover tooltip
+  const renderDiffPlain = (diffObj) => {
+    return Object.entries(diffObj).map(([field, change]) => {
+      const from = (change.from === '' || change.from === undefined || change.from === null) ? '(empty)' : String(change.from);
+      const to   = (change.to   === '' || change.to   === undefined || change.to   === null) ? '(empty)' : String(change.to);
+      return field + ': ' + from + ' → ' + to;
+    }).join(', ');
+  };
+
+  // Resolve an entity reference. For Prizes on non-delete actions, look up
+  // the card name + showId in D.prizes and render a clickable link that
+  // opens the show modal with the prize in edit mode. Otherwise fall back
+  // to "EntityType ·<uuid-prefix>".
+  const renderEntity = (action, entityType, entityId) => {
+    if (!entityType) return '';
+    const isDeleteAction = String(action||'').toLowerCase().startsWith('delete');
+    if (entityType === 'Prize' && entityId && !isDeleteAction) {
+      const prize = (D.prizes || []).find(p => p.id === entityId);
+      if (prize && prize.card && prize.showId) {
+        return `${esc(entityType)} · <span onclick="openPrizeFromAudit('${esc(prize.id)}','${esc(prize.showId)}')" style="color:var(--blue);text-decoration:underline;cursor:pointer;">${esc(prize.card)}</span>`;
+      }
+    }
+    return `${esc(entityType)}${entityId?` <span style="color:var(--text3);">·${esc(String(entityId).substring(0,8))}</span>`:''}`;
+  };
 
   const slice = filtered.slice(0, SHOW_MAX);
   tb.innerHTML = slice.map(a => {
     const meta = actionMeta(a.action);
-    const detailsTrunc = (a.details || '').length > 100
-      ? esc((a.details||'').substring(0,100)) + '…'
-      : esc(a.details||'');
-    return `<tr title="${esc(a.details||'')}">
+    const parsed = parseDetails(a.details);
+    const detailsIsDiff = isDiff(parsed);
+    const detailsHTML = detailsIsDiff
+      ? renderDiffHTML(parsed)
+      : ((a.details || '').length > 100 ? esc((a.details||'').substring(0,100)) + '…' : esc(a.details||''));
+    const titleAttr = detailsIsDiff ? renderDiffPlain(parsed) : (a.details || '');
+    return `<tr title="${esc(titleAttr)}">
       <td style="font-size:11px;color:var(--text2);white-space:nowrap;">${fmtTs(a.timestamp)}</td>
       <td style="font-size:12px;font-weight:600;">${esc(a.user||'unknown')}</td>
       <td><span class="bx ${meta.badge}">${esc(meta.label)}</span></td>
-      <td style="font-size:11px;">${esc(a.entityType||'')}${a.entityId?` <span style="color:var(--text3);">·${esc((a.entityId||'').substring(0,8))}</span>`:''}</td>
-      <td style="font-size:11px;color:var(--text2);max-width:380px;overflow:hidden;text-overflow:ellipsis;">${detailsTrunc}</td>
+      <td style="font-size:11px;">${renderEntity(a.action, a.entityType, a.entityId)}</td>
+      <td style="font-size:11px;color:var(--text2);max-width:380px;overflow:hidden;text-overflow:ellipsis;">${detailsHTML}</td>
     </tr>`;
   }).join('');
 }
