@@ -1943,8 +1943,37 @@ function showDetail(showId){
     <div class="g4" style="margin-bottom:.5rem;">
       <div class="met"><div class="ml">Revenue</div><div class="mv">${fmt(pl.rev)}</div><div class="ms">spots ${fmt(sh.spotsRev)} + tips ${fmt(pl.tipsTotal)}</div></div>
       <div class="met"><div class="ml">Manual valuations</div><div class="mv" style="color:var(--amber);">${fmt(pl.prizeCost)}</div><div class="ms">in profit math</div></div>
-      <div class="met"><div class="ml">Other costs</div><div class="mv r">${fmt(pl.packCost+pl.otherCost+pl.fees+pl.sixkillaExpense)}</div><div class="ms">packs + other + fees${pl.sixkillaExpense>0?' + @'+D.cfg.reimbursementBuyer:''}</div></div>
+      <div class="met"><div class="ml">Other costs</div><div class="mv r">${fmt(pl.packCost+pl.otherCost+pl.fees+pl.sixkillaExpense)}</div><div class="ms">see breakdown below</div></div>
       <div class="met"><div class="ml">Net profit</div><div class="mv ${pl.profit>=0?'g':'r'}">${fmt(pl.profit)}</div><div class="ms">to split ${pl.lucaPct}/${pl.matPct}</div></div>
+    </div>
+
+    <!-- "Other costs" breakdown -->
+    <div style="background:var(--surface2);border-radius:var(--r);padding:.75rem .875rem;margin-bottom:1rem;font-size:12px;">
+      <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Other costs breakdown</div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed var(--border);">
+        <span style="color:var(--text2);">Whatnot fees (commission + processing)</span>
+        <span style="font-weight:600;font-variant-numeric:tabular-nums;color:${pl.fees>0?'var(--text)':'var(--text3)'};">${fmt(pl.fees)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed var(--border);">
+        <span style="color:var(--text2);">Pack / box cost</span>
+        <span style="font-weight:600;font-variant-numeric:tabular-nums;color:${pl.packCost>0?'var(--text)':'var(--text3)'};">${fmt(pl.packCost)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;${pl.sixkillaExpense>0?'border-bottom:1px dashed var(--border);':''}">
+        <span style="color:var(--text2);">Other costs (shipping, supplies, etc.)</span>
+        <span style="font-weight:600;font-variant-numeric:tabular-nums;color:${pl.otherCost>0?'var(--text)':'var(--text3)'};">${fmt(pl.otherCost)}</span>
+      </div>
+      ${pl.sixkillaReimbursable>0?`<div style="display:flex;justify-content:space-between;padding:4px 0;${pl.sixkillaCompanyCard>0?'border-bottom:1px dashed var(--border);':''}">
+        <span style="color:var(--text2);">@${D.cfg.reimbursementBuyer} bids — reimbursed to ${D.cfg.reimbursementBuyerOwedTo==='P2'?D.cfg.p2:D.cfg.p1} (${pl.sixkillaReimbursableCount} txn${pl.sixkillaReimbursableCount===1?'':'s'})</span>
+        <span style="font-weight:600;font-variant-numeric:tabular-nums;color:var(--purple);">${fmt(pl.sixkillaReimbursable)}</span>
+      </div>`:''}
+      ${pl.sixkillaCompanyCard>0?`<div style="display:flex;justify-content:space-between;padding:4px 0;">
+        <span style="color:var(--text2);">@${D.cfg.reimbursementBuyer} bids — company card (${pl.sixkillaCompanyCardCount} txn${pl.sixkillaCompanyCardCount===1?'':'s'})</span>
+        <span style="font-weight:600;font-variant-numeric:tabular-nums;color:var(--text2);">${fmt(pl.sixkillaCompanyCard)}</span>
+      </div>`:''}
+      <div style="display:flex;justify-content:space-between;padding:7px 0 0;margin-top:3px;border-top:2px solid var(--border2);font-weight:600;font-size:13px;">
+        <span>Total</span>
+        <span style="font-variant-numeric:tabular-nums;color:var(--red);">${fmt(pl.packCost+pl.otherCost+pl.fees+pl.sixkillaExpense)}</span>
+      </div>
     </div>
 
     <!-- Per-partner totals: profit + valuations + reimbursements -->
