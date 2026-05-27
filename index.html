@@ -1943,24 +1943,26 @@ function showDetail(showId){
     <div class="g4" style="margin-bottom:.5rem;">
       <div class="met"><div class="ml">Revenue</div><div class="mv">${fmt(pl.rev)}</div><div class="ms">spots ${fmt(sh.spotsRev)} + tips ${fmt(pl.tipsTotal)}</div></div>
       <div class="met"><div class="ml">Manual valuations</div><div class="mv" style="color:var(--amber);">${fmt(pl.prizeCost)}</div><div class="ms">in profit math</div></div>
-      <div class="met"><div class="ml">Other costs</div><div class="mv r">${fmt(pl.packCost+pl.otherCost+pl.fees)}</div><div class="ms">packs + other + fees</div></div>
+      <div class="met"><div class="ml">Other costs</div><div class="mv r">${fmt(pl.packCost+pl.otherCost+pl.fees+pl.sixkillaExpense)}</div><div class="ms">packs + other + fees${pl.sixkillaExpense>0?' + @'+D.cfg.reimbursementBuyer:''}</div></div>
       <div class="met"><div class="ml">Net profit</div><div class="mv ${pl.profit>=0?'g':'r'}">${fmt(pl.profit)}</div><div class="ms">to split ${pl.lucaPct}/${pl.matPct}</div></div>
     </div>
 
-    <!-- Per-partner totals: profit + valuations -->
+    <!-- Per-partner totals: profit + valuations + reimbursements -->
     <div style="background:var(--surface2);border-radius:var(--r);padding:.875rem;margin-bottom:1rem;">
-      <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px;">Final per-partner totals (profit split + valuation payouts)</div>
+      <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px;">Final per-partner totals (profit split + valuation payouts + reimbursements)</div>
       <div class="g2">
         <div style="background:var(--surface);border-radius:var(--r);padding:.75rem;">
           <div style="font-size:13px;font-weight:600;margin-bottom:4px;">${D.cfg.p1} (${pl.lucaPct}%)</div>
           <div style="font-size:11px;color:var(--text2);">Profit: ${fmt(pl.profitToLuca)}</div>
-          <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Valuations: ${fmt(pl.valuationToLuca)}</div>
+          <div style="font-size:11px;color:var(--text2);${pl.sixkillaToLuca>0?'':'margin-bottom:4px;'}">Valuations: ${fmt(pl.valuationToLuca)}</div>
+          ${pl.sixkillaToLuca>0?`<div style="font-size:11px;color:var(--purple);margin-bottom:4px;">@${D.cfg.reimbursementBuyer} reimburse (${pl.sixkillaToLucaCount||0} txn${(pl.sixkillaToLucaCount||0)===1?'':'s'}): ${fmt(pl.sixkillaToLuca)}</div>`:''}
           <div style="font-size:18px;font-weight:600;color:${pl.totalToLuca>=0?'var(--green)':'var(--red)'};">${fmt(pl.totalToLuca)}</div>
         </div>
         <div style="background:var(--surface);border-radius:var(--r);padding:.75rem;">
           <div style="font-size:13px;font-weight:600;margin-bottom:4px;">${D.cfg.p2} (${pl.matPct}%)</div>
           <div style="font-size:11px;color:var(--text2);">Profit: ${fmt(pl.profitToMat)}</div>
-          <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Valuations: ${fmt(pl.valuationToMat)}</div>
+          <div style="font-size:11px;color:var(--text2);${pl.sixkillaToMat>0?'':'margin-bottom:4px;'}">Valuations: ${fmt(pl.valuationToMat)}</div>
+          ${pl.sixkillaToMat>0?`<div style="font-size:11px;color:var(--purple);margin-bottom:4px;">@${D.cfg.reimbursementBuyer} reimburse (${pl.sixkillaToMatCount||0} txn${(pl.sixkillaToMatCount||0)===1?'':'s'}): ${fmt(pl.sixkillaToMat)}</div>`:''}
           <div style="font-size:18px;font-weight:600;color:${pl.totalToMat>=0?'var(--green)':'var(--red)'};">${fmt(pl.totalToMat)}</div>
         </div>
       </div>
