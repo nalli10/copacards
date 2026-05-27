@@ -1,0 +1,2373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CardBiz Pro</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f5f5f3;--surface:#fff;--surface2:#f0efed;--border:#e0dedd;--border2:#c8c7c5;
+  --text:#1a1a1a;--text2:#555;--text3:#999;
+  --green:#16a34a;--green-bg:#dcfce7;--red:#dc2626;--red-bg:#fee2e2;
+  --blue:#1d4ed8;--blue-bg:#dbeafe;--amber:#b45309;--amber-bg:#fef3c7;
+  --purple:#7c3aed;--purple-bg:#ede9fe;
+  --accent:#e94560;--r:8px;--rl:12px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#0f0f0f;--surface:#1a1a1a;--surface2:#242424;--border:#2e2e2e;--border2:#404040;
+  --text:#f0f0f0;--text2:#aaa;--text3:#555;
+  --green:#4ade80;--green-bg:#052e16;--red:#f87171;--red-bg:#450a0a;
+  --blue:#60a5fa;--blue-bg:#1e3a5f;--amber:#fbbf24;--amber-bg:#451a03;--purple:#a78bfa;--purple-bg:#2e1065;
+}}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.25rem;display:flex;align-items:center;height:50px;gap:10px;position:sticky;top:0;z-index:50;}
+.brand{font-size:15px;font-weight:700;white-space:nowrap;}.brand em{color:var(--accent);font-style:normal;}
+.brand-cad{font-size:10px;background:var(--amber-bg);color:var(--amber);border-radius:4px;padding:1px 5px;font-weight:600;margin-left:2px;}
+.nav{display:flex;gap:2px;background:var(--surface2);padding:3px;border-radius:var(--r);margin-left:auto;overflow-x:auto;}
+.nt{padding:4px 10px;font-size:12px;border:none;background:none;cursor:pointer;border-radius:6px;color:var(--text2);white-space:nowrap;}
+.nt.on{background:var(--surface);color:var(--text);font-weight:500;border:1px solid var(--border);}
+.user-chip{font-size:11px;color:var(--text3);white-space:nowrap;}
+.pg{display:none;padding:1.25rem;max-width:1120px;margin:0 auto;}
+.pg.on{display:block;}
+.sync-bar{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:var(--r);background:var(--surface);border:1px solid var(--border);margin-bottom:1rem;font-size:12px;color:var(--text2);}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;}
+.sync-dot.syncing{background:var(--amber);animation:pulse 1s infinite;}
+.sync-dot.error{background:var(--red);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:1.25rem;}
+.met{background:var(--surface2);border-radius:var(--r);padding:.875rem;}
+.ml{font-size:11px;color:var(--text2);margin-bottom:3px;}
+.mv{font-size:18px;font-weight:600;}.mv.g{color:var(--green);}.mv.r{color:var(--red);}.mv.b{color:var(--blue);}
+.ms{font-size:10px;color:var(--text3);margin-top:2px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:1.125rem;margin-bottom:.875rem;}
+.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem;flex-wrap:wrap;gap:8px;}
+.ct{font-size:13px;font-weight:600;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:.875rem;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.875rem;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.875rem;}
+.g5{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:.875rem;}
+.btn{padding:6px 13px;font-size:12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface);cursor:pointer;color:var(--text);font-weight:500;}
+.btn:hover{background:var(--surface2);}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btnp{background:var(--text);color:var(--bg);border-color:var(--text);}
+.btnp:hover{opacity:.85;}
+.btns{padding:4px 9px;font-size:11px;}
+.btnd{color:var(--red);border-color:var(--red-bg);}
+.btnpurple{background:var(--purple);color:#fff;border-color:var(--purple);}
+.fg{display:flex;flex-direction:column;gap:3px;margin-bottom:10px;}
+.fg label{font-size:11px;color:var(--text2);}
+.fg input,.fg select,.fg textarea{font-size:12px;padding:5px 9px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface);color:var(--text);width:100%;}
+.fg textarea{resize:vertical;min-height:60px;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{text-align:left;padding:7px 10px;font-size:11px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);}
+td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--surface2);}
+.bx{font-size:11px;padding:2px 7px;border-radius:20px;font-weight:500;display:inline-block;}
+.bg{background:var(--green-bg);color:var(--green);}
+.br{background:var(--red-bg);color:var(--red);}
+.bb{background:var(--blue-bg);color:var(--blue);}
+.bw{background:var(--amber-bg);color:var(--amber);}
+.bp{background:var(--surface2);color:var(--text2);}
+.bpur{background:var(--purple-bg);color:var(--purple);}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:.875rem;}
+.tab{padding:5px 12px;font-size:12px;border:none;background:none;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;}
+.tab.on{color:var(--text);border-bottom-color:var(--text);font-weight:500;}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:200;padding:1rem;}
+.mo{background:var(--surface);border-radius:var(--rl);border:1px solid var(--border);padding:1.375rem;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;}
+.mt{font-size:14px;font-weight:600;margin-bottom:1.125rem;}
+.mf{display:flex;gap:8px;justify-content:flex-end;margin-top:1.125rem;padding-top:.875rem;border-top:1px solid var(--border);}
+.uz{border:1.5px dashed var(--border2);border-radius:var(--r);padding:1.5rem;text-align:center;cursor:pointer;}
+.uz:hover{background:var(--surface2);}
+.uz input{display:none;}
+.uz p{font-size:12px;color:var(--text2);margin-top:6px;}
+.es{text-align:center;padding:2rem;color:var(--text3);font-size:12px;}
+.split-card{background:var(--surface2);border-radius:var(--r);padding:.875rem;text-align:center;}
+.sc-name{font-size:13px;font-weight:600;}
+.sc-pct{font-size:11px;color:var(--text2);margin:2px 0 6px;}
+.sc-amt{font-size:22px;font-weight:600;}
+.cw{position:relative;width:100%;height:200px;}
+.ldr{position:fixed;inset:0;background:rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;z-index:300;}
+.ldr-box{background:var(--surface);border-radius:var(--rl);padding:1.5rem 2rem;text-align:center;font-size:13px;color:var(--text2);}
+.spin{width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--text);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* Prize card entry row */
+.prize-row{display:flex;gap:6px;align-items:flex-end;margin-bottom:8px;flex-wrap:wrap;}
+.prize-row .fg{margin-bottom:0;}
+.prize-summary{background:var(--surface2);border-radius:var(--r);padding:.75rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center;font-size:12px;}
+
+/* Show ownership badge */
+.own-joint{background:var(--blue-bg);color:var(--blue);}
+.own-solo{background:var(--purple-bg);color:var(--purple);}
+
+/* Info callout */
+.callout{background:var(--amber-bg);border-left:3px solid var(--amber);border-radius:0 var(--r) var(--r) 0;padding:.625rem .875rem;font-size:12px;color:var(--amber);margin-bottom:.875rem;}
+
+/* Auto-import status row */
+.status-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:.75rem;background:var(--surface2);border-radius:var(--r);margin-bottom:.5rem;flex-wrap:wrap;}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle;}
+.status-dot.ok{background:var(--green);}
+.status-dot.off{background:var(--text3);}
+.status-dot.warn{background:var(--amber);}
+
+/* Sortable column headers */
+.sortable{cursor:pointer;user-select:none;}
+.sortable:hover{color:var(--text);}
+.sort-indicator{font-size:9px;color:var(--text3);margin-left:2px;}
+.sort-indicator.asc::after{content:'▲';color:var(--text);}
+.sort-indicator.desc::after{content:'▼';color:var(--text);}
+
+/* Show Detail tab */
+.detail-picker{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.detail-picker select{font-size:13px;padding:7px 11px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface);color:var(--text);min-width:320px;flex:1;}
+.detail-line{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px;border-bottom:1px dashed var(--border);}
+.detail-line:last-child{border-bottom:none;}
+.detail-line .lbl{color:var(--text2);}
+.detail-line .val{font-weight:600;font-variant-numeric:tabular-nums;}
+.detail-line.total{padding-top:10px;margin-top:4px;border-top:2px solid var(--border2);border-bottom:none;font-size:14px;}
+.collapse-toggle{cursor:pointer;user-select:none;font-size:12px;color:var(--text2);display:inline-flex;align-items:center;gap:4px;}
+.collapse-toggle:hover{color:var(--text);}
+.collapse-toggle .arrow{transition:transform .15s;display:inline-block;}
+.collapse-toggle.open .arrow{transform:rotate(90deg);}
+
+/* Partner details modal */
+.pd-tabs{display:flex;gap:0;background:var(--surface2);padding:3px;border-radius:var(--r);margin-bottom:.875rem;}
+.pd-tab{flex:1;padding:7px 12px;font-size:13px;border:none;background:none;cursor:pointer;border-radius:6px;color:var(--text2);font-weight:500;}
+.pd-tab.on{background:var(--surface);color:var(--text);border:1px solid var(--border);}
+.pd-row{cursor:pointer;}
+.pd-row:hover td{background:var(--surface2);}
+.pd-arrow{display:inline-block;width:10px;font-size:9px;color:var(--text3);transition:transform .15s;}
+.pd-arrow.open{transform:rotate(90deg);color:var(--text);}
+.pd-sub td{padding:5px 10px 5px 28px;font-size:11px;color:var(--text2);background:var(--surface2);border-bottom:1px solid var(--border);}
+.pd-sub td.amt{color:var(--text);font-weight:500;text-align:right;font-variant-numeric:tabular-nums;}
+.pd-total td{padding:10px;font-weight:600;border-top:2px solid var(--border2);background:var(--surface2);font-size:13px;}
+.pd-total td.amt{text-align:right;font-variant-numeric:tabular-nums;}
+.pd-amt{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
+.pd-sectionhead td{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;background:var(--surface2);padding:8px 10px;border-bottom:1px solid var(--border);}
+
+/* Mobile */
+.mobile-nav{display:none;}
+@media(max-width:700px){
+  .metrics{grid-template-columns:1fr 1fr;}
+  .g3,.g4,.g5{grid-template-columns:1fr 1fr;}
+  .g2{grid-template-columns:1fr;}
+  .nav{display:none;}
+  .pg{padding:.875rem;padding-bottom:80px;}
+  .mobile-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:50;padding:4px 0;overflow-x:auto;}
+  .mn-btn{flex:1;min-width:60px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border:none;background:none;cursor:pointer;font-size:10px;color:var(--text2);}
+  .mn-btn.on{color:var(--accent);}
+  .mn-icon{font-size:17px;line-height:1;}
+  .detail-picker select{min-width:0;width:100%;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">Card<em>Biz</em> Pro <span class="brand-cad">CAD</span></div>
+  <div class="nav">
+    <button class="nt on" onclick="go('dash')">Dashboard</button>
+    <button class="nt" onclick="go('inv')">Inventory</button>
+    <button class="nt" onclick="go('shows')">Shows</button>
+    <button class="nt" onclick="go('detail')">Detail</button>
+    <button class="nt" onclick="go('sales')">Sales</button>
+    <button class="nt" onclick="go('import')">Import</button>
+    <button class="nt" onclick="go('settings')">Settings</button>
+  </div>
+  <div class="user-chip" id="user-chip"></div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="pg on" id="pg-dash">
+  <div class="sync-bar"><div class="sync-dot" id="sync-dot"></div><span id="sync-msg">Loading...</span><button class="btn btns" style="margin-left:auto;" onclick="loadAll()">↻ Refresh</button></div>
+  <div class="metrics" id="dm"></div>
+
+  <!-- Sales over time -->
+  <div class="card">
+    <div class="ch">
+      <span class="ct">Revenue over time</span>
+      <div style="display:flex;gap:4px;">
+        <button class="btn btns" id="rot-week" onclick="setRevPeriod('week',this)">Weekly</button>
+        <button class="btn btns" id="rot-month" onclick="setRevPeriod('month',this)">Monthly</button>
+      </div>
+    </div>
+    <div class="cw" style="height:240px;"><canvas id="revOverTimeChart"></canvas></div>
+  </div>
+
+  <div class="g2">
+    <div class="card"><div class="ch"><span class="ct">Revenue by channel (CAD)</span></div><div class="cw"><canvas id="revChart"></canvas></div></div>
+    <div class="card"><div class="ch"><span class="ct">Recent shows P&L</span></div><div class="cw" style="height:240px;"><canvas id="showChart"></canvas></div></div>
+  </div>
+
+  <div class="card"><div class="ch"><span class="ct">Partner split</span><button class="btn btns" onclick="openPartnerDetails()">View details</button></div><div id="psplit"></div></div>
+
+  <!-- Top buyers -->
+  <div class="card">
+    <div class="ch"><span class="ct">Top buyers</span><span style="font-size:11px;color:var(--text2);" id="buyers-summary"></span></div>
+    <div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Buyer</th><th>Orders</th><th>Total spent</th><th>Avg order</th><th>Last order</th></tr></thead><tbody id="buyers-body"></tbody></table></div>
+  </div>
+</div>
+
+<!-- INVENTORY -->
+<div class="pg" id="pg-inv">
+  <div class="card">
+    <div class="ch"><span class="ct">Inventory</span>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btns" onclick="openMod('inv')">+ Add card</button>
+        <button class="btn btns" onclick="openMod('bulk')">+ Bulk (pack pulls)</button>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab on" onclick="fInv('all',this)">All</button>
+      <button class="tab" onclick="fInv('available',this)">Available</button>
+      <button class="tab" onclick="fInv('prize',this)">Prize pool</button>
+      <button class="tab" onclick="fInv('sold',this)">Sold</button>
+      <button class="tab" onclick="fInv('consigned',this)">Consigned</button>
+    </div>
+    <div style="overflow-x:auto;"><table><thead><tr><th>Card</th><th>Grade</th><th>Source</th><th>Cost paid</th><th>CL Value</th><th>ROI</th><th>Owner</th><th>Status</th><th></th></tr></thead><tbody id="inv-body"></tbody></table></div>
+  </div>
+</div>
+
+<!-- SHOWS -->
+<div class="pg" id="pg-shows">
+  <!-- Top 5 leaderboard -->
+  <div class="card" id="top5-card">
+    <div class="ch">
+      <span class="ct">Top 5 shows by net profit</span>
+      <button class="btn btns" id="top5-toggle" onclick="toggleTop5()">Hide</button>
+    </div>
+    <div id="top5-body" style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Show</th><th>Date</th><th>Revenue</th><th>Net profit</th><th id="top5-th-luca">P1 cut</th><th id="top5-th-mat">P2 cut</th></tr></thead><tbody id="top5-tbody"></tbody></table></div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="ct">Shows & breaks</span>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btns btnp" onclick="openMod('show')">+ New show</button>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab on" onclick="fShows('all',this)">All</button>
+      <button class="tab" id="tab-joint" onclick="fShows('joint',this)">With P1</button>
+      <button class="tab" id="tab-solo" onclick="fShows('solo',this)">P2 100%</button>
+    </div>
+
+    <!-- Bulk edit toolbar — only visible when rows are selected -->
+    <div id="bulk-bar" style="display:none;background:var(--blue-bg);border:1px solid var(--blue);border-radius:var(--r);padding:.625rem .875rem;margin-bottom:.625rem;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span style="font-size:12px;color:var(--blue);font-weight:600;"><span id="bulk-count">0</span> selected</span>
+      <select id="bulk-split" style="font-size:12px;padding:5px 9px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface);color:var(--text);">
+        <!-- populated dynamically in renderShows -->
+      </select>
+      <button class="btn btns btnp" onclick="bulkApplySplit()">Apply</button>
+      <button class="btn btns" onclick="bulkClearSelection()">Clear</button>
+    </div>
+
+    <div style="overflow-x:auto;"><table id="shows-table"><thead><tr>
+      <th style="width:32px;"><input type="checkbox" id="select-all" onchange="toggleSelectAll(this)"></th>
+      <th class="sortable" onclick="setShowSort('name')">Show <span class="sort-indicator" data-col="name"></span></th>
+      <th class="sortable" onclick="setShowSort('date')">Date <span class="sort-indicator" data-col="date"></span></th>
+      <th>Split</th>
+      <th class="sortable" onclick="setShowSort('spotsSold')">Spots <span class="sort-indicator" data-col="spotsSold"></span></th>
+      <th class="sortable" onclick="setShowSort('tipsTotal')">Tips <span class="sort-indicator" data-col="tipsTotal"></span></th>
+      <th class="sortable" onclick="setShowSort('prizeCost')">Prize cost <span class="sort-indicator" data-col="prizeCost"></span></th>
+      <th class="sortable" onclick="setShowSort('rev')">Revenue <span class="sort-indicator" data-col="rev"></span></th>
+      <th class="sortable" onclick="setShowSort('totalCost')">Total cost <span class="sort-indicator" data-col="totalCost"></span></th>
+      <th class="sortable" onclick="setShowSort('profit')">Net profit <span class="sort-indicator" data-col="profit"></span></th>
+      <th class="sortable" id="th-luca" onclick="setShowSort('totalToLuca')">P1 total <span class="sort-indicator" data-col="totalToLuca"></span></th>
+      <th class="sortable" id="th-mat" onclick="setShowSort('totalToMat')">P2 total <span class="sort-indicator" data-col="totalToMat"></span></th>
+      <th></th>
+    </tr></thead><tbody id="shows-body"></tbody></table></div>
+  </div>
+</div>
+
+<!-- SHOW DETAIL -->
+<div class="pg" id="pg-detail">
+  <div class="card">
+    <div class="ch"><span class="ct">Show Detail</span>
+      <span style="font-size:11px;color:var(--text2);" id="detail-count"></span>
+    </div>
+    <div class="detail-picker">
+      <select id="detail-select" onchange="renderDetailPanel(this.value)"></select>
+      <button class="btn btns" onclick="renderDetailTab()">↻ Refresh</button>
+    </div>
+  </div>
+  <div id="detail-panel"></div>
+</div>
+
+<!-- SALES -->
+<div class="pg" id="pg-sales">
+  <div class="card">
+    <div class="ch"><span class="ct">Sales log</span><button class="btn btns btnp" onclick="openMod('sale')">+ Log sale</button></div>
+    <div style="overflow-x:auto;"><table><thead><tr><th>Item</th><th>Date</th><th>Show</th><th>Platform</th><th>Sale</th><th>WN Fees</th><th>Net</th><th>COGS</th><th>Profit</th><th></th></tr></thead><tbody id="sales-body"></tbody></table></div>
+  </div>
+</div>
+
+<!-- IMPORT -->
+<div class="pg" id="pg-import">
+
+  <!-- Auto-import status at top of import page -->
+  <div class="card" id="auto-status-card">
+    <div class="ch"><span class="ct">Auto-import from Drive</span>
+      <button class="btn btns" onclick="loadAutoStatus()">↻</button>
+    </div>
+    <div id="auto-status-body" style="font-size:12px;color:var(--text2);">Loading status...</div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="ct">Manual import — Whatnot Weekly Orders CSV</span></div>
+    <div class="callout">⚡ Select multiple CSVs at once. Each file is imported on the server in a single call — no per-row roundtrips.</div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:.875rem;">Seller Hub → Financials → Weekly Orders Report → Download CSV</p>
+    <label class="uz"><input type="file" accept=".csv" multiple onchange="doImportMulti(this)"><div style="font-size:22px;">↑</div><p>Click or drop one or multiple Whatnot Weekly Orders CSVs here</p>
+        <p style="font-size:10px;color:var(--text3);margin-top:3px;">Hold Ctrl/Cmd to select multiple files</p></label>
+    <div id="imp-result" style="margin-top:.875rem;display:none;"></div>
+  </div>
+  <div class="card"><div class="ch"><span class="ct">Import history</span></div><div id="imp-hist"></div></div>
+</div>
+
+<!-- SETTINGS -->
+<div class="pg" id="pg-settings">
+  <div class="card">
+    <div class="ch"><span class="ct">Partner settings</span></div>
+    <div class="g2">
+      <div>
+        <div class="fg"><label>Partner 1 name (default minority)</label><input id="s-p1" type="text" placeholder="Luca"></div>
+        <div class="fg"><label>Partner 1 split %</label><input id="s-pct" type="number" min="0" max="100" placeholder="40" oninput="$('s-pct2').value=100-Number(this.value)"></div>
+      </div>
+      <div>
+        <div class="fg"><label>Partner 2 name (default majority)</label><input id="s-p2" type="text" placeholder="Matthew Ciampa"></div>
+        <div class="fg"><label>Partner 2 split % (auto)</label><input id="s-pct2" type="number" readonly style="opacity:.5;"></div>
+      </div>
+    </div>
+    <p style="font-size:11px;color:var(--text3);margin-bottom:.5rem;">Default for new shows. Each show can override its split independently.</p>
+    <button class="btn btnp" onclick="saveSettings()">Save partner settings</button>
+  </div>
+  <div class="card">
+    <div class="ch"><span class="ct">Card valuation defaults</span></div>
+    <div class="callout">When a card is used as a prize, this % of its market value is booked as the show's prize-cost expense, and that amount is paid to the card's owner. e.g. 85% of a $200 card = $170 prize cost.</div>
+    <div class="g3">
+      <div class="fg"><label>Default valuation %</label><input id="s-val" type="number" step="0.5" placeholder="85"></div>
+      <div class="fg"><label>Joint card recoup share — Luca's %</label><input id="s-jrs" type="number" min="0" max="100" placeholder="50"></div>
+      <div class="fg"><label>Whatnot commission %</label><input id="s-wnfee" type="number" step="0.1" placeholder="8"></div>
+    </div>
+    <div class="g3">
+      <div class="fg"><label>Other platform fee %</label><input id="s-othfee" type="number" step="0.1" placeholder="5"></div>
+      <div class="fg"><label>Legacy discount % (deprecated)</label><input id="s-disc" type="number" step="0.5" placeholder="17.5" style="opacity:.6;"></div>
+      <div></div>
+    </div>
+    <button class="btn btnp" onclick="saveFees()">Save</button>
+  </div>
+  <div class="card">
+    <div class="ch"><span class="ct">Reimbursements & adjustments</span></div>
+    <div class="callout">When a partner uses their personal card to bid on shows, those transactions show up as buyer @username on Sales. The full bid price is treated as a per-show expense (reduces profit, both partners share Whatnot's fee proportionally) and 100% routes back to the partner who paid. Blank out the buyer username when you switch to a company card.</div>
+    <div class="g3">
+      <div class="fg"><label>Reimbursement buyer (Whatnot username)</label><input id="s-rbuyer" type="text" placeholder="6ixkilla"></div>
+      <div class="fg"><label>Owed to which partner</label><select id="s-rowed"><option value="P1">P1 (default)</option><option value="P2">P2</option></select></div>
+      <div></div>
+    </div>
+    <div class="g3">
+      <div class="fg"><label>P1 prior work fee owed (CA$)</label><input id="s-prior" type="number" step="0.01" placeholder="0.00"></div>
+      <div></div>
+      <div></div>
+    </div>
+    <p style="font-size:11px;color:var(--text3);margin-bottom:.5rem;">Prior work fee is a one-time lump sum owed to P1 for setup work before the partnership. Adds to P1's total on the Dashboard. Reduce this number when paid back.</p>
+    <button class="btn btnp" onclick="saveReimburse()">Save</button>
+  </div>
+  <div class="card">
+    <div class="ch"><span class="ct">Auto-import notifications</span></div>
+    <div class="callout">Choose when CardBiz should email you after the auto-importer runs.</div>
+    <div class="fg">
+      <label>Notification mode</label>
+      <select id="s-notify">
+        <option value="problems_only">Problems only — silent unless something fails</option>
+        <option value="always">Always — email summary every run</option>
+        <option value="silent">Silent — no emails ever</option>
+      </select>
+    </div>
+    <button class="btn btnp" onclick="saveNotify()">Save</button>
+  </div>
+  <div class="card">
+    <div class="ch"><span class="ct">Authorized accounts</span></div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:.25rem;">
+      <div style="font-size:12px;background:var(--surface2);padding:.5rem .75rem;border-radius:var(--r);">lndbconsulting@gmail.com</div>
+      <div style="font-size:12px;background:var(--surface2);padding:.5rem .75rem;border-radius:var(--r);">milawnprop@gmail.com</div>
+    </div>
+  </div>
+</div>
+
+<div class="mobile-nav">
+  <button class="mn-btn on" onclick="go('dash')"><div class="mn-icon">⊞</div>Dash</button>
+  <button class="mn-btn" onclick="go('inv')"><div class="mn-icon">📦</div>Inv</button>
+  <button class="mn-btn" onclick="go('shows')"><div class="mn-icon">🎥</div>Shows</button>
+  <button class="mn-btn" onclick="go('detail')"><div class="mn-icon">🔍</div>Detail</button>
+  <button class="mn-btn" onclick="go('sales')"><div class="mn-icon">💰</div>Sales</button>
+  <button class="mn-btn" onclick="go('import')"><div class="mn-icon">↑</div>Import</button>
+</div>
+
+<div id="modwrap"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwgEHL6qMiSyd558fKf1ODDcre-mRn-aWjFynylESdfp7j1GxvgSYwTlp5tuW_AOA7Z/exec';
+
+let D = { inv:[], shows:[], sales:[], prizes:[], tips:[], imports:[], cfg:{p1:'Luca',p2:'Matthew Ciampa',split:40,disc:17.5,wnfee:8,othfee:5,valuationPct:85,jointRecoupShare:50,autoImportNotifyMode:'problems_only',reimbursementBuyer:'6ixkilla',reimbursementBuyerOwedTo:'P1',priorWorkFee:0} };
+let CH = {};
+
+// ── AUTH STATE ────────────────────────────────────────────────
+// AUTH_MODE   : 'owner' | 'pin' | null   — set after getAuthMode probe
+// AUTH_TOKEN  : the PIN that was accepted (null for owner sessions)
+// AUTH_LABEL  : display name for the chip in the topbar (e.g. "Matt", "Owner")
+// IDLE_TIMER  : id from setTimeout — clears+resets on every user activity
+// IDLE_MS     : 15 minutes
+let AUTH_MODE = null;
+let AUTH_TOKEN = null;
+let AUTH_LABEL = '';
+let IDLE_TIMER = null;
+const IDLE_MS = 15 * 60 * 1000;
+
+// Boot sequence: figure out auth mode → owner goes straight to app,
+// pin users see the splash. Re-prompt on every refresh by NOT persisting
+// the token to localStorage/sessionStorage.
+window.onload = () => { bootApp(); };
+
+const $ = id => document.getElementById(id);
+const N = x => isNaN(Number(x)) ? 0 : Number(x||0);
+const fmt = n => 'CA$'+N(n).toLocaleString('en-CA',{minimumFractionDigits:2,maximumFractionDigits:2});
+const today = () => new Date().toISOString().split('T')[0];
+const fmtDate = d => { if(!d) return '—'; const t = Date.parse(d); if (isNaN(t)) return d; return new Date(t).toLocaleDateString('en-CA',{year:'numeric',month:'short',day:'numeric'}); };
+
+// ── SYNC ──────────────────────────────────────────────────────
+function setSyncStatus(st, msg) {
+  const dot=$('sync-dot'), el=$('sync-msg');
+  if(dot) dot.className='sync-dot'+(st==='syncing'?' syncing':st==='error'?' error':'');
+  if(el) el.textContent=msg||'Synced';
+}
+
+async function api(body) {
+  setSyncStatus('syncing','Syncing...');
+  // Attach the PIN token if we have one. Public actions (getAuthMode/checkPin)
+  // pass through without — the server doesn't require a token for those.
+  const payload = AUTH_TOKEN ? Object.assign({}, body, {token: AUTH_TOKEN}) : body;
+  try {
+    const res = await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'text/plain'}});
+    const data = await res.json();
+    if(data && data.authRequired){
+      // Server rejected our token (PIN was changed/removed mid-session).
+      // Force the user back to the splash.
+      setSyncStatus('error','Session expired');
+      lockSession();
+      return null;
+    }
+    if(data.error){setSyncStatus('error',data.error);return null;}
+    setSyncStatus('ok','Synced · '+new Date().toLocaleTimeString());
+    return data;
+  } catch(e) {
+    setSyncStatus('error','Connection error');
+    return null;
+  }
+}
+
+// ── AUTH BOOT / PIN SPLASH ────────────────────────────────────
+async function bootApp() {
+  // Probe: does the server already know who we are (i.e. owner)?
+  const probe = await api({action:'getAuthMode'});
+  if (!probe || !probe.success) {
+    // Server unreachable — show a static splash so user isn't stuck on a blank page
+    showPinSplash('Could not reach the server. Check your connection and refresh.');
+    return;
+  }
+  if (probe.mode === 'owner') {
+    AUTH_MODE = 'owner';
+    AUTH_TOKEN = null;
+    AUTH_LABEL = probe.label || 'Owner';
+    enterApp();
+    return;
+  }
+  // PIN mode — show the splash
+  AUTH_MODE = 'pin';
+  showPinSplash();
+}
+
+function showPinSplash(errMsg) {
+  // Hide the main app shell while the splash is up
+  document.querySelectorAll('.topbar, .pg, .mobile-nav').forEach(el => el.style.display = 'none');
+  let host = $('pin-splash');
+  if (!host) {
+    host = document.createElement('div');
+    host.id = 'pin-splash';
+    document.body.appendChild(host);
+  }
+  host.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:1000;padding:1rem;';
+  host.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:2rem;max-width:360px;width:100%;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.06);">
+      <div style="font-size:24px;font-weight:700;margin-bottom:.25rem;">Card<span style="color:var(--accent);">Biz</span> Pro</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:1.5rem;">Enter your PIN to continue</div>
+      <input id="pin-input" type="password" inputmode="numeric" autocomplete="off" placeholder="••••" maxlength="8"
+             style="font-size:24px;letter-spacing:6px;text-align:center;padding:12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface2);color:var(--text);width:100%;margin-bottom:.75rem;"
+             onkeydown="if(event.key==='Enter')submitPin()">
+      <button class="btn btnp" style="width:100%;padding:10px;font-size:14px;" onclick="submitPin()">Unlock</button>
+      <div id="pin-err" style="font-size:12px;color:var(--red);margin-top:.75rem;min-height:18px;">${errMsg||''}</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:1rem;">Session ends after 15 min of inactivity or on refresh.</div>
+    </div>
+  `;
+  setTimeout(() => { const i=$('pin-input'); if(i) i.focus(); }, 50);
+}
+
+async function submitPin() {
+  const input = $('pin-input');
+  const errEl = $('pin-err');
+  const pin = input ? input.value.trim() : '';
+  if (!pin) { if(errEl) errEl.textContent='Enter a PIN.'; return; }
+  if (errEl) errEl.textContent='Checking...';
+  if (input) input.disabled = true;
+  const res = await api({action:'checkPin', pin});
+  if (input) input.disabled = false;
+  if (!res || !res.success) {
+    if (errEl) errEl.textContent = 'Server error — try again.';
+    return;
+  }
+  if (res.ok) {
+    AUTH_TOKEN = res.token;
+    AUTH_LABEL = res.label || 'User';
+    enterApp();
+    return;
+  }
+  if (res.locked) {
+    const until = res.lockedUntil ? new Date(res.lockedUntil) : null;
+    const mins = until ? Math.max(1, Math.ceil((until - Date.now())/60000)) : 5;
+    if (errEl) errEl.textContent = 'Too many wrong attempts. Locked for '+mins+' min.';
+    if (input) { input.value=''; input.disabled = true; }
+    return;
+  }
+  if (errEl) errEl.textContent = 'Wrong PIN. Try again.';
+  if (input) { input.value=''; input.focus(); }
+}
+
+function enterApp() {
+  // Tear down splash if present
+  const splash = $('pin-splash');
+  if (splash) splash.remove();
+  // Restore the main app shell
+  document.querySelectorAll('.topbar, .pg, .mobile-nav').forEach(el => el.style.display = '');
+  // Render any auth chip (top-right) so the user knows who they're signed in as
+  const chip = $('user-chip');
+  if (chip) chip.textContent = AUTH_LABEL ? AUTH_LABEL+' · sign out' : '';
+  if (chip) { chip.style.cursor='pointer'; chip.onclick = lockSession; }
+  // Start the idle timer (PIN sessions only; owner stays in indefinitely)
+  if (AUTH_MODE === 'pin') startIdleTimer();
+  // Now actually load the data
+  loadAll();
+}
+
+function lockSession() {
+  AUTH_TOKEN = null;
+  AUTH_LABEL = '';
+  if (IDLE_TIMER) { clearTimeout(IDLE_TIMER); IDLE_TIMER = null; }
+  // Wipe any in-memory data so a quick screen-glance doesn't leak it
+  D = { inv:[], shows:[], sales:[], prizes:[], tips:[], imports:[], cfg:D.cfg };
+  showPinSplash('Session ended. Enter your PIN to continue.');
+}
+
+function startIdleTimer() {
+  const reset = () => {
+    if (IDLE_TIMER) clearTimeout(IDLE_TIMER);
+    IDLE_TIMER = setTimeout(lockSession, IDLE_MS);
+  };
+  // Activity events — any of these resets the timer
+  ['mousedown','keydown','touchstart','scroll'].forEach(ev =>
+    document.addEventListener(ev, reset, {passive:true})
+  );
+  reset();
+}
+
+async function loadAll() {
+  showLdr('Loading...');
+  const data = await api({action:'getAll'});
+  hideLdr();
+  if(!data||!data.success) return;
+  D.inv     = data.inventory||[];
+  D.shows   = data.shows||[];
+  D.sales   = data.sales||[];
+  D.prizes  = data.prizes||[];
+  D.tips    = data.tips||[];
+  D.imports = data.imports||[];
+  if(data.config){
+    D.cfg.p1    = data.config.p1||'Luca';
+    D.cfg.p2    = data.config.p2||'Matthew Ciampa';
+    D.cfg.split = N(data.config.split);
+    if (isNaN(D.cfg.split) || data.config.split === '' || data.config.split === undefined) D.cfg.split = 40;
+    D.cfg.disc  = N(data.config.disc)||17.5;
+    D.cfg.wnfee = N(data.config.wnfee)||8;
+    D.cfg.othfee= N(data.config.othfee)||5;
+    D.cfg.valuationPct = N(data.config.valuationPct);
+    if (isNaN(D.cfg.valuationPct) || data.config.valuationPct === '' || data.config.valuationPct === undefined) D.cfg.valuationPct = 85;
+    D.cfg.jointRecoupShare = N(data.config.jointRecoupShare);
+    if (isNaN(D.cfg.jointRecoupShare) || data.config.jointRecoupShare === '' || data.config.jointRecoupShare === undefined) D.cfg.jointRecoupShare = 50;
+    D.cfg.autoImportNotifyMode = data.config.autoImportNotifyMode||'problems_only';
+    D.cfg.reimbursementBuyer = (data.config.reimbursementBuyer===''||data.config.reimbursementBuyer===undefined)?'6ixkilla':data.config.reimbursementBuyer;
+    D.cfg.reimbursementBuyerOwedTo = data.config.reimbursementBuyerOwedTo||'P1';
+    D.cfg.priorWorkFee = N(data.config.priorWorkFee);
+    if (isNaN(D.cfg.priorWorkFee)) D.cfg.priorWorkFee = 0;
+  }
+  renderAll();
+}
+
+// ── LOADERS ────────────────────────────────────────────────────
+function showLdr(msg){
+  const e=document.getElementById('ldr');if(e)e.remove();
+  const d=document.createElement('div');d.id='ldr';d.className='ldr';
+  d.innerHTML=`<div class="ldr-box"><div class="spin"></div>${msg||'Saving...'}</div>`;
+  document.body.appendChild(d);
+}
+function hideLdr(){const l=document.getElementById('ldr');if(l)l.remove();}
+
+// ── NAV ────────────────────────────────────────────────────────
+function go(id){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nt,.mn-btn').forEach(t=>t.classList.remove('on'));
+  $('pg-'+id).classList.add('on');
+  document.querySelectorAll('.nt').forEach(t=>{if(t.textContent.toLowerCase().startsWith(id.substring(0,3)))t.classList.add('on');});
+  document.querySelectorAll('.mn-btn').forEach(t=>{if(t.textContent.toLowerCase().includes(id.substring(0,3)))t.classList.add('on');});
+  if(id==='dash')renderDash();
+  if(id==='settings')applySettingsUI();
+  if(id==='import')loadAutoStatus();
+  if(id==='detail')renderDetailTab();
+}
+function renderAll(){renderDash();renderInv();renderShows();renderSales();renderImpHist();renderDetailTab();}
+
+// ── HELPERS ────────────────────────────────────────────────────
+function showPrizesFor(showId){return (D.prizes||[]).filter(p=>p.showId===showId);}
+function showTipsFor(showId){return (D.tips||[]).filter(t=>t.showId===showId);}
+
+// A "manual" prize is one that was entered by the user (default valuationPct = 85).
+// Auto-imported giveaways from the Whatnot CSV are stored with valuationPct = 100
+// and are EXCLUDED from the profit-math valuation total.
+function isManualPrize(p){
+  // Empty/missing valuationPct → treat as manual (legacy data, pre-import era)
+  if (p.valuationPct === '' || p.valuationPct === undefined || p.valuationPct === null) return true;
+  return N(p.valuationPct) !== 100;
+}
+
+// Returns the full P&L breakdown for a show, including valuation payouts
+// to card owners (separate from the profit split).
+//
+// PROFIT FORMULA (updated):
+//   revenue       = spotsRev + tipsTotal
+//   valuations    = SUM(prize.valuation) for prizes where valuationPct ≠ 100
+//                   (manual prizes only — auto-imported giveaways excluded)
+//   profit        = revenue − fees − valuations − packCost − otherCost
+//
+// Shape returned:
+//   rev:           gross revenue (spots + tips)
+//   tipsTotal:     total tips
+//   prizeCost:     manual-prize valuation total (the COGS for profit math)
+//   prizeCostAll:  ALL prize valuations (manual + giveaways) — for display only
+//   giveawayCost:  auto-imported giveaway total — for display only
+//   packCost, otherCost, fees: as logged on the show
+//   totalCost:     prizeCost + packCost + otherCost + fees (manual prizes only)
+//   profit:        revenue - totalCost  (the pool that gets split 60/40)
+//   lucaPct:       % to Luca for this show (per splitOverride or global)
+//   matPct:        100 - lucaPct
+//   profitToLuca, profitToMat: profit × pct
+//   valuationToLuca, valuationToMat: per-card valuation routed by ownerShare (manual only)
+//   totalToLuca, totalToMat: profitTo* + valuationTo*
+function showPL(sh){
+  const prizes = showPrizesFor(sh.id);
+  const tips = showTipsFor(sh.id);
+  const tipsTotal = tips.reduce((a,t)=>a+N(t.amt),0) + N(sh.tips);
+  const rev = N(sh.spotsRev) + tipsTotal;
+
+  // Reimbursement-buyer detection: any sale on this show whose buyer matches
+  // the configured reimbursementBuyer (e.g. '6ixkilla') was actually paid
+  // for by a partner using their personal card. Whatnot processed it as
+  // normal revenue + fees, so spotsRev/totalFees already include it. We
+  // treat the FULL price as a partnership expense that routes 100% back
+  // to the owed-to partner. Whatnot's fee on those bids is shared by both
+  // partners proportionally (because it's a real partnership cost).
+  const reimbBuyer = (D.cfg.reimbursementBuyer||'').toLowerCase().trim();
+  let sixkillaExpense = 0;
+  let sixkillaCount = 0;
+  if (reimbBuyer) {
+    (D.sales||[]).forEach(s => {
+      if (s.showId !== sh.id) return;
+      if ((s.buyer||'').toLowerCase().trim() !== reimbBuyer) return;
+      sixkillaExpense += N(s.price);
+      sixkillaCount++;
+    });
+  }
+
+  // Per-card valuation routed to each partner by ownerShare.
+  // Only MANUAL prizes count toward profit math. Giveaways are tracked
+  // separately for display only.
+  let prizeCost = 0;        // manual prizes only — used in profit math
+  let prizeCostAll = 0;     // all prizes — for display
+  let giveawayCost = 0;     // auto-imported giveaways only — for display
+  let valuationToLuca = 0;
+  let valuationToMat = 0;
+  prizes.forEach(p => {
+    // Prefer new 'valuation' field; fall back to legacy 'discountedValue'
+    const v = N(p.valuation) || N(p.discountedValue);
+    prizeCostAll += v;
+    if (isManualPrize(p)) {
+      prizeCost += v;
+      let lucaShare;
+      if (p.ownerShare === '' || p.ownerShare === undefined || p.ownerShare === null) {
+        // Owner unknown — default by legacy convention: assume Matt 100%
+        // (since 95% of inventory is Matt's). User can correct on the prize.
+        lucaShare = 0;
+      } else {
+        lucaShare = Math.max(0, Math.min(100, N(p.ownerShare)));
+      }
+      valuationToLuca += v * (lucaShare / 100);
+      valuationToMat  += v * ((100 - lucaShare) / 100);
+    } else {
+      giveawayCost += v;
+    }
+  });
+
+  const packCost = N(sh.packCost);
+  const otherCost = N(sh.otherCost);
+  const fees = N(sh.totalFees);
+  const totalCost = prizeCost + packCost + otherCost + fees + sixkillaExpense;
+  const profit = rev - totalCost;
+
+  // Determine Luca's % for this show
+  let lucaPct;
+  if (sh.splitOverride !== '' && sh.splitOverride !== undefined && sh.splitOverride !== null) {
+    lucaPct = Math.max(0, Math.min(100, N(sh.splitOverride)));
+  } else {
+    // Backward compat: legacy 'solo' ownership = Luca 0%
+    if (sh.ownership === 'solo') lucaPct = 0;
+    else lucaPct = N(D.cfg.split) || 40;
+  }
+  const matPct = 100 - lucaPct;
+
+  const profitToLuca = profit * (lucaPct / 100);
+  const profitToMat  = profit * (matPct / 100);
+
+  // Route the reimbursement 100% back to the owed-to partner.
+  // Default is P1 (Luca). Configurable via Settings.
+  const owedTo = (D.cfg.reimbursementBuyerOwedTo || 'P1').toUpperCase();
+  const sixkillaToLuca = owedTo === 'P1' ? sixkillaExpense : 0;
+  const sixkillaToMat  = owedTo === 'P2' ? sixkillaExpense : 0;
+
+  const totalToLuca = profitToLuca + valuationToLuca + sixkillaToLuca;
+  const totalToMat  = profitToMat  + valuationToMat  + sixkillaToMat;
+
+  return {
+    rev, tipsTotal,
+    prizeCost, prizeCostAll, giveawayCost,
+    packCost, otherCost, fees, totalCost,
+    sixkillaExpense, sixkillaCount, sixkillaToLuca, sixkillaToMat,
+    profit,
+    lucaPct, matPct,
+    profitToLuca, profitToMat,
+    valuationToLuca, valuationToMat,
+    totalToLuca, totalToMat,
+    // Backward-compat fields used elsewhere in the UI
+    isJoint: lucaPct > 0,
+    myCut: profitToLuca   // legacy alias
+  };
+}
+
+// ── DASHBOARD ──────────────────────────────────────────────────
+function renderDash(){
+  const invCost = D.inv.reduce((a,i)=>a+N(i.cost),0);
+
+  // Sales totals
+  let showSalesRev = 0, nonShowSalesRev = 0;
+  let salesFees = 0, salesCogs = 0, showSalesFees = 0;
+  D.sales.forEach(s=>{
+    const price = N(s.price);
+    salesFees += N(s.fees);
+    salesCogs += N(s.cost);
+    if (s.showId) {
+      showSalesRev += price;
+      showSalesFees += N(s.fees);
+    } else {
+      nonShowSalesRev += price;
+    }
+  });
+  const nonShowSalesFees = salesFees - showSalesFees;
+
+  // Per-show numbers (now accurate because spotsRev/totalFees are recomputed from sales)
+  let showRev=0, showTotalCost=0, showProfit=0;
+  let showLucaProfit=0, showMatProfit=0;
+  let showLucaValuation=0, showMatValuation=0;
+  let showLucaReimburse=0, showMatReimburse=0;
+  let showSixkillaTotal=0, showSixkillaCount=0;
+  D.shows.forEach(sh=>{
+    const pl=showPL(sh);
+    showRev+=pl.rev;
+    showTotalCost+=pl.totalCost;
+    showProfit+=pl.profit;
+    showLucaProfit+=pl.profitToLuca;
+    showMatProfit+=pl.profitToMat;
+    showLucaValuation+=pl.valuationToLuca;
+    showMatValuation+=pl.valuationToMat;
+    showLucaReimburse+=pl.sixkillaToLuca;
+    showMatReimburse+=pl.sixkillaToMat;
+    showSixkillaTotal+=pl.sixkillaExpense;
+    showSixkillaCount+=pl.sixkillaCount;
+  });
+
+  // Non-show sales profit (BIN/standalone) — split per global default
+  const nonShowSalesProfit = nonShowSalesRev - nonShowSalesFees;
+  const lucaPct = N(D.cfg.split)||40;
+  const salesLuca = nonShowSalesProfit * (lucaPct/100);
+  const salesMat  = nonShowSalesProfit - salesLuca;
+
+  // Prior work fee — owed to P1 (Luca). Independent of any show.
+  const priorFee = N(D.cfg.priorWorkFee) || 0;
+
+  const totalProfit = nonShowSalesProfit + showProfit;
+  const lucaTotal = salesLuca + showLucaProfit + showLucaValuation + showLucaReimburse + priorFee;
+  const matTotal  = salesMat  + showMatProfit  + showMatValuation  + showMatReimburse;
+
+  $('dm').innerHTML=`
+    <div class="met"><div class="ml">Inventory cost</div><div class="mv">${fmt(invCost)}</div><div class="ms">${D.inv.filter(i=>i.status==='available').length} available</div></div>
+    <div class="met"><div class="ml">Non-show sales</div><div class="mv">${fmt(nonShowSalesRev)}</div><div class="ms">${D.sales.filter(s=>!s.showId).length} sales</div></div>
+    <div class="met"><div class="ml">Show revenue</div><div class="mv">${fmt(showRev)}</div><div class="ms">${D.shows.length} shows</div></div>
+    <div class="met"><div class="ml">Total fees</div><div class="mv r">${fmt(salesFees)}</div><div class="ms">Whatnot + processing</div></div>
+    <div class="met"><div class="ml">Net profit</div><div class="mv ${totalProfit>=0?'g':'r'}">${fmt(totalProfit)}</div><div class="ms">across all shows + sales</div></div>`;
+
+  // Build the partner split breakdown lines, only showing reimbursement/prior-work
+  // pieces if they're non-zero, to keep the tile uncluttered for users who don't use them.
+  const buyerLabel = D.cfg.reimbursementBuyer ? '@'+D.cfg.reimbursementBuyer : 'reimbursements';
+  const lucaLines = [];
+  lucaLines.push('Profit share: ' + fmt(salesLuca+showLucaProfit));
+  if (showLucaValuation > 0) lucaLines.push('Card valuations: ' + fmt(showLucaValuation));
+  if (showLucaReimburse > 0) lucaLines.push(buyerLabel + ' reimbursed: ' + fmt(showLucaReimburse) + ' (' + showSixkillaCount + ' txns)');
+  if (priorFee > 0)          lucaLines.push('Prior work fee: ' + fmt(priorFee));
+  const matLines = [];
+  matLines.push('Profit share: ' + fmt(salesMat+showMatProfit));
+  if (showMatValuation > 0) matLines.push('Card valuations: ' + fmt(showMatValuation));
+  if (showMatReimburse > 0) matLines.push(buyerLabel + ' reimbursed: ' + fmt(showMatReimburse));
+
+  $('psplit').innerHTML=`<div class="g2">
+    <div class="split-card">
+      <div class="sc-name">${D.cfg.p1}</div>
+      <div class="sc-pct">${lucaLines.join(' · ')}</div>
+      <div class="sc-amt ${lucaTotal>=0?'g':'r'}">${fmt(lucaTotal)}</div>
+    </div>
+    <div class="split-card">
+      <div class="sc-name">${D.cfg.p2}</div>
+      <div class="sc-pct">${matLines.join(' · ')}</div>
+      <div class="sc-amt ${matTotal>=0?'g':'r'}">${fmt(matTotal)}</div>
+    </div>
+  </div>`;
+
+  // Donut chart: passes accurate values now that showRev is recomputed
+  drawRevChart(nonShowSalesRev, showRev);
+  drawShowChart();
+  drawRevOverTime();
+  renderTopBuyers();
+}
+
+// ── PARTNER DETAILS MODAL ─────────────────────────────────────
+// Shows the line-item breakdown of every show that contributed to a
+// selected partner's total. Toggle between P1 and P2; click a show row to
+// expand sub-rows showing profit cut / valuations / reimbursement.
+let PD_PARTNER = 'P1';            // 'P1' or 'P2' — which view is active
+let PD_EXPANDED = new Set();      // show ids whose sub-rows are open
+
+function openPartnerDetails(){
+  PD_EXPANDED.clear();
+  PD_PARTNER = 'P1';
+  $('modwrap').innerHTML = `<div class="ov" onclick="maybeClose(event)"><div class="mo" style="max-width:760px;">
+    <div class="mt">Partner split — line item details</div>
+    <div class="pd-tabs">
+      <button class="pd-tab on" id="pd-tab-p1" onclick="setPartnerDetail('P1')"></button>
+      <button class="pd-tab"    id="pd-tab-p2" onclick="setPartnerDetail('P2')"></button>
+    </div>
+    <div id="pd-body"></div>
+    <div class="mf"><button class="btn btnp" onclick="closeMod()">Close</button></div>
+  </div></div>`;
+  renderPartnerDetail();
+}
+
+function setPartnerDetail(which){
+  PD_PARTNER = which;
+  PD_EXPANDED.clear();
+  renderPartnerDetail();
+}
+
+function renderPartnerDetail(){
+  // Update tab labels + on-state
+  const p1 = D.cfg.p1 || 'P1';
+  const p2 = D.cfg.p2 || 'P2';
+  const t1 = $('pd-tab-p1'), t2 = $('pd-tab-p2');
+  if (t1) t1.textContent = p1;
+  if (t2) t2.textContent = p2;
+  if (t1) t1.classList.toggle('on', PD_PARTNER === 'P1');
+  if (t2) t2.classList.toggle('on', PD_PARTNER === 'P2');
+
+  const body = $('pd-body');
+  if (!body) return;
+
+  const isP1 = PD_PARTNER === 'P1';
+  const partnerName = isP1 ? p1 : p2;
+  const buyerLabel = D.cfg.reimbursementBuyer ? '@'+D.cfg.reimbursementBuyer : 'reimburse';
+
+  // Build per-show contribution rows
+  const sortedShows = D.shows.slice().sort((a,b) => {
+    const ta = Date.parse(a.date), tb = Date.parse(b.date);
+    if (isNaN(ta) && isNaN(tb)) return 0;
+    if (isNaN(ta)) return 1;
+    if (isNaN(tb)) return -1;
+    return tb - ta;
+  });
+
+  let showRowsHTML = '';
+  let showsTotal = 0;
+  let totProfit = 0, totValuation = 0, totReimburse = 0;
+
+  sortedShows.forEach(sh => {
+    const pl = showPL(sh);
+    const profitCut = isP1 ? pl.profitToLuca : pl.profitToMat;
+    const valuation = isP1 ? pl.valuationToLuca : pl.valuationToMat;
+    const reimburse = isP1 ? pl.sixkillaToLuca : pl.sixkillaToMat;
+    const showTotal = profitCut + valuation + reimburse;
+
+    // Skip shows that contribute nothing to this partner — keeps the table focused
+    if (Math.abs(showTotal) < 0.005 && Math.abs(profitCut) < 0.005 && valuation === 0 && reimburse === 0) return;
+
+    showsTotal += showTotal;
+    totProfit += profitCut;
+    totValuation += valuation;
+    totReimburse += reimburse;
+
+    const isOpen = PD_EXPANDED.has(sh.id);
+    const arrow = `<span class="pd-arrow${isOpen?' open':''}">▶</span>`;
+    const splitLabel = isP1 ? pl.lucaPct+'%' : pl.matPct+'%';
+
+    showRowsHTML += `<tr class="pd-row" onclick="togglePartnerRow('${sh.id}')">
+      <td>${arrow} <strong>${sh.name||'(unnamed)'}</strong> <span style="color:var(--text2);font-size:11px;">· ${fmtDate(sh.date)} · split ${splitLabel}</span></td>
+      <td class="pd-amt" style="color:${showTotal>=0?'var(--green)':'var(--red)'};">${fmt(showTotal)}</td>
+    </tr>`;
+
+    if (isOpen) {
+      // Build sub-rows — only show line items that are non-zero
+      const sub = [];
+      if (Math.abs(profitCut) > 0.005) sub.push(['Profit cut ('+splitLabel+' of '+fmt(pl.profit)+')', profitCut, 'var(--text)']);
+      if (valuation > 0)               sub.push(['Card valuations (owner share of prizes used)', valuation, 'var(--amber)']);
+      if (reimburse > 0)               sub.push([buyerLabel+' reimbursement ('+pl.sixkillaCount+' txn'+(pl.sixkillaCount===1?'':'s')+')', reimburse, 'var(--purple)']);
+      if (!sub.length) sub.push(['(no contribution from this show)', 0, 'var(--text3)']);
+
+      showRowsHTML += sub.map(([lbl, amt, col]) =>
+        `<tr class="pd-sub"><td>${lbl}</td><td class="amt" style="color:${col};">${fmt(amt)}</td></tr>`
+      ).join('');
+    }
+  });
+
+  // Non-show items section
+  // Non-show sales profit (BIN/standalone) — split per global default
+  let nonShowSalesRev = 0, nonShowSalesFees = 0;
+  D.sales.forEach(s => {
+    if (s.showId) return;
+    nonShowSalesRev += N(s.price);
+    nonShowSalesFees += N(s.fees);
+  });
+  const nonShowProfit = nonShowSalesRev - nonShowSalesFees;
+  const lucaPct = N(D.cfg.split) || 40;
+  const nonShowCut = isP1 ? nonShowProfit * (lucaPct/100) : nonShowProfit * ((100-lucaPct)/100);
+
+  const priorFee = N(D.cfg.priorWorkFee) || 0;
+
+  let nonShowRowsHTML = '';
+  let nonShowTotal = 0;
+
+  if (Math.abs(nonShowCut) > 0.005) {
+    nonShowTotal += nonShowCut;
+    nonShowRowsHTML += `<tr class="pd-row" style="cursor:default;">
+      <td><strong>Non-show sales profit cut</strong> <span style="color:var(--text2);font-size:11px;">· ${isP1?lucaPct:(100-lucaPct)}% of ${fmt(nonShowProfit)} · ${D.sales.filter(s=>!s.showId).length} sales</span></td>
+      <td class="pd-amt" style="color:${nonShowCut>=0?'var(--green)':'var(--red)'};">${fmt(nonShowCut)}</td>
+    </tr>`;
+  }
+
+  if (isP1 && priorFee > 0) {
+    nonShowTotal += priorFee;
+    nonShowRowsHTML += `<tr class="pd-row" style="cursor:default;">
+      <td><strong>Prior work fee</strong> <span style="color:var(--text2);font-size:11px;">· lump sum owed for pre-partnership work</span></td>
+      <td class="pd-amt" style="color:var(--green);">${fmt(priorFee)}</td>
+    </tr>`;
+  }
+
+  const grandTotal = showsTotal + nonShowTotal;
+
+  // Empty state
+  if (!showRowsHTML && !nonShowRowsHTML) {
+    body.innerHTML = `<div class="es">${partnerName} has no contributions yet.</div>`;
+    return;
+  }
+
+  body.innerHTML = `
+    <div style="overflow-x:auto;max-height:60vh;">
+      <table>
+        <thead><tr><th>Show / line item</th><th style="text-align:right;">${partnerName}'s share</th></tr></thead>
+        <tbody>
+          ${showRowsHTML ? `<tr class="pd-sectionhead"><td colspan="2">Per-show contributions</td></tr>` : ''}
+          ${showRowsHTML}
+          ${nonShowRowsHTML ? `<tr class="pd-sectionhead"><td colspan="2">Non-show items</td></tr>` : ''}
+          ${nonShowRowsHTML}
+          <tr class="pd-total">
+            <td>Total to ${partnerName}</td>
+            <td class="amt" style="color:${grandTotal>=0?'var(--green)':'var(--red)'};">${fmt(grandTotal)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:8px;">
+      Click a show row to expand its line items. Shows with zero contribution to ${partnerName} are hidden.
+    </div>
+  `;
+}
+
+function togglePartnerRow(showId){
+  if (PD_EXPANDED.has(showId)) PD_EXPANDED.delete(showId);
+  else PD_EXPANDED.add(showId);
+  renderPartnerDetail();
+}
+
+// ── REVENUE OVER TIME ────────────────────────────────────────
+let REV_PERIOD = 'week';
+function setRevPeriod(p, btn){
+  REV_PERIOD = p;
+  document.querySelectorAll('#rot-week,#rot-month').forEach(b=>b.classList.remove('btnp'));
+  if(btn) btn.classList.add('btnp');
+  drawRevOverTime();
+}
+
+function drawRevOverTime(){
+  const c=$('revOverTimeChart');if(!c)return;
+  if(CH.rot)CH.rot.destroy();
+
+  // Toggle button visual state
+  const wb=$('rot-week'), mb=$('rot-month');
+  if(wb&&mb){
+    wb.classList.toggle('btnp', REV_PERIOD==='week');
+    mb.classList.toggle('btnp', REV_PERIOD==='month');
+  }
+
+  // Build a buckets map: { 'YYYY-Wxx' or 'YYYY-MM' : { showRev, salesRev } }
+  const bucketKey = (dateStr) => {
+    if (!dateStr) return null;
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return null;
+    if (REV_PERIOD === 'month') {
+      return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');
+    }
+    // ISO week: rough — Sunday-anchored week label
+    const weekStart = new Date(d);
+    weekStart.setUTCDate(d.getUTCDate() - d.getUTCDay());
+    return weekStart.toISOString().slice(0,10);
+  };
+
+  const buckets = {};
+  // Both lines come from the Sales records:
+  //   "Show sales" = sales with a showId (associated to a livestream)
+  //   "Non-show sales" = sales without a showId (BIN, marketplace, etc.)
+  // This avoids double-counting and reconciles to the Sales tab totals.
+  D.sales.forEach(s=>{
+    const k = bucketKey(s.date); if(!k) return;
+    if(!buckets[k]) buckets[k]={showRev:0,salesRev:0};
+    if (s.showId) buckets[k].showRev += N(s.price);
+    else buckets[k].salesRev += N(s.price);
+  });
+  // Tips on shows count toward "show" revenue too
+  D.tips.forEach(t=>{
+    const sh = D.shows.find(x => x.id === t.showId);
+    if (!sh) return;
+    const k = bucketKey(sh.date); if (!k) return;
+    if (!buckets[k]) buckets[k]={showRev:0,salesRev:0};
+    buckets[k].showRev += N(t.amt);
+  });
+
+  const keys = Object.keys(buckets).sort();
+  if (!keys.length){
+    // Empty state
+    const ctx = c.getContext('2d');
+    ctx.clearRect(0,0,c.width,c.height);
+    ctx.fillStyle='#999';ctx.font='12px sans-serif';ctx.textAlign='center';
+    ctx.fillText('No data yet', c.width/2, c.height/2);
+    return;
+  }
+
+  const labels = keys.map(k => {
+    if (REV_PERIOD === 'month') {
+      const [y,m] = k.split('-');
+      return new Date(Number(y), Number(m)-1, 1).toLocaleDateString('en-CA',{month:'short',year:'numeric'});
+    }
+    return new Date(k).toLocaleDateString('en-CA',{month:'short',day:'numeric'});
+  });
+  const showData = keys.map(k => buckets[k].showRev);
+  const salesData = keys.map(k => buckets[k].salesRev);
+
+  CH.rot = new Chart(c, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label:'Show sales', data:showData, borderColor:'#16a34a', backgroundColor:'rgba(22,163,74,.1)', tension:.3, fill:true, pointRadius:3 },
+        { label:'Non-show sales', data:salesData, borderColor:'#3266ad', backgroundColor:'rgba(50,102,173,.1)', tension:.3, fill:true, pointRadius:3 }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{position:'bottom',labels:{font:{size:11},color:'#888',boxWidth:9}},
+        tooltip:{callbacks:{label:(ctx)=>ctx.dataset.label+': CA$'+Number(ctx.parsed.y).toLocaleString('en-CA',{minimumFractionDigits:2,maximumFractionDigits:2})}}
+      },
+      scales:{
+        y:{ticks:{callback:v=>'$'+v,font:{size:10}},beginAtZero:true},
+        x:{ticks:{font:{size:10},maxRotation:45,minRotation:0}}
+      }
+    }
+  });
+}
+
+// ── TOP BUYERS ────────────────────────────────────────────────
+function renderTopBuyers(){
+  const tb=$('buyers-body');
+  if(!tb) return;
+
+  // Aggregate by buyer (sales + tips both contribute)
+  const map = {};
+  D.sales.forEach(s=>{
+    const buyer = (s.buyer||'').trim();
+    if(!buyer) return;
+    if(!map[buyer]) map[buyer]={buyer, orders:0, total:0, lastDate:''};
+    map[buyer].orders++;
+    map[buyer].total += N(s.price);
+    if (s.date && s.date > map[buyer].lastDate) map[buyer].lastDate = s.date;
+  });
+  D.tips.forEach(t=>{
+    const buyer = (t.fromUser||'').replace(/^@/,'').trim();
+    if(!buyer) return;
+    if(!map[buyer]) map[buyer]={buyer, orders:0, total:0, lastDate:''};
+    map[buyer].total += N(t.amt);
+    // Don't increment orders for tips alone
+  });
+
+  const list = Object.values(map).sort((a,b)=>b.total-a.total).slice(0,10);
+  const summary = $('buyers-summary');
+  if (summary) summary.textContent = Object.keys(map).length + ' unique buyers';
+
+  if(!list.length){
+    tb.innerHTML='<tr><td colspan="6"><div class="es">No buyer data yet</div></td></tr>';
+    return;
+  }
+
+  tb.innerHTML = list.map((b,i)=>`
+    <tr>
+      <td style="font-size:11px;color:var(--text3);width:24px;">${i+1}</td>
+      <td style="font-weight:600;font-size:12px;">@${b.buyer}</td>
+      <td style="font-size:11px;">${b.orders}</td>
+      <td style="font-weight:600;">${fmt(b.total)}</td>
+      <td style="font-size:11px;color:var(--text2);">${b.orders>0?fmt(b.total/b.orders):'—'}</td>
+      <td style="font-size:11px;color:var(--text2);">${b.lastDate||'—'}</td>
+    </tr>
+  `).join('');
+}
+
+function drawRevChart(sr, shr){
+  const c=$('revChart');if(!c)return;
+  if(CH.rev)CH.rev.destroy();
+  CH.rev=new Chart(c,{type:'doughnut',data:{labels:['Singles/cards','Shows & breaks'],datasets:[{data:[Math.max(sr,0),Math.max(shr,0)],backgroundColor:['#3266ad','#16a34a'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},color:'#888',boxWidth:9}}}}});
+}
+function drawShowChart(){
+  const c=$('showChart');if(!c)return;
+  if(CH.show)CH.show.destroy();
+  const shows=D.shows.slice(-8);if(!shows.length)return;
+  const profits=shows.map(sh=>showPL(sh).profit);
+  const fullNames=shows.map(s=>s.name||'(unnamed)');
+  const truncLabels=fullNames.map(n => n.length > 22 ? n.slice(0,20)+'…' : n);
+  CH.show=new Chart(c,{
+    type:'bar',
+    data:{labels:truncLabels,datasets:[{data:profits,backgroundColor:profits.map(p=>p>=0?'#16a34a':'#dc2626'),borderRadius:3}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{
+          title: (items)=> items.map(it => fullNames[it.dataIndex]),
+          label: (item)=> 'Profit: CA$'+Number(item.parsed.y).toLocaleString('en-CA',{minimumFractionDigits:2,maximumFractionDigits:2})
+        }}
+      },
+      scales:{
+        y:{ticks:{callback:v=>'$'+v,font:{size:10}}},
+        x:{ticks:{font:{size:10},maxRotation:45,minRotation:30,autoSkip:false}}
+      }
+    }
+  });
+}
+
+// ── INVENTORY ──────────────────────────────────────────────────
+function renderInv(filter='all'){
+  const tb=$('inv-body');
+  let items=filter==='all'?D.inv:D.inv.filter(i=>i.status===filter);
+  if(!items.length){tb.innerHTML='<tr><td colspan="9"><div class="es">No cards yet</div></td></tr>';return;}
+  tb.innerHTML=items.map(item=>{
+    const roi=item.clValue&&item.cost?((N(item.clValue)-N(item.cost))/N(item.cost)*100).toFixed(0)+'%':'—';
+    const roiC=item.clValue&&N(item.clValue)>=N(item.cost)?'var(--green)':'var(--red)';
+    // Ownership badge: prefer new ownerShare; fall back to legacy cardOwner
+    let ownerBadge;
+    const os = item.ownerShare;
+    if (os !== '' && os !== undefined && os !== null && !isNaN(N(os))) {
+      const v = N(os);
+      if (v === 0) ownerBadge = '<span class="bx bpur">'+D.cfg.p2+'</span>';
+      else if (v === 100) ownerBadge = '<span class="bx bb">'+D.cfg.p1+'</span>';
+      else if (v === 50) ownerBadge = '<span class="bx bw">Joint 50/50</span>';
+      else ownerBadge = '<span class="bx bw">'+v+'/'+(100-v)+'</span>';
+    } else {
+      ownerBadge = item.cardOwner==='partner'?'<span class="bx bpur">'+D.cfg.p2+'</span>'
+                  :item.cardOwner==='joint'?'<span class="bx bw">Joint</span>'
+                  :'<span class="bx bp">⚠ unset</span>';
+    }
+    return `<tr>
+      <td><div style="font-weight:600;font-size:12px;">${item.player}</div><div style="font-size:10px;color:var(--text2);">${[item.year,item.brand,item.cardNum].filter(Boolean).join(' ')}</div></td>
+      <td>${item.grade?`<span class="bx bb">${item.gradeCo||''} ${item.grade}</span>`:'-'}</td>
+      <td><span class="bx bp">${item.source||'—'}</span></td>
+      <td>${fmt(item.cost)}</td>
+      <td>${item.clValue?fmt(item.clValue):'<span style="color:var(--text3)">—</span>'}</td>
+      <td style="font-size:11px;font-weight:600;color:${roiC};">${roi}</td>
+      <td>${ownerBadge}</td>
+      <td><span class="bx ${item.status==='available'?'bg':item.status==='sold'?'br':item.status==='prize'?'bw':'bp'}">${item.status}</span></td>
+      <td><button class="btn btns btnd" onclick="delItem('Inventory','${item.id}')">×</button></td>
+    </tr>`;
+  }).join('');
+}
+function fInv(f,btn){document.querySelectorAll('#pg-inv .tab').forEach(t=>t.classList.remove('on'));btn.classList.add('on');renderInv(f);}
+
+// ── SHOWS ──────────────────────────────────────────────────────
+// Bulk-selection state. Lives only in the client; cleared on filter change or page reload.
+let SHOW_SELECTION = new Set();
+
+// Sort state for Shows table. Default: date desc (most recent first).
+let SHOWS_SORT = { col: 'date', dir: 'desc' };
+
+function setShowSort(col){
+  if (SHOWS_SORT.col === col) {
+    SHOWS_SORT.dir = SHOWS_SORT.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    SHOWS_SORT.col = col;
+    SHOWS_SORT.dir = 'desc'; // default to desc on new column
+  }
+  renderShows(SHOWS_FILTER);
+}
+
+// Top 5 leaderboard state
+let TOP5_HIDDEN = false;
+function toggleTop5(){
+  TOP5_HIDDEN = !TOP5_HIDDEN;
+  const body=$('top5-body');
+  const btn=$('top5-toggle');
+  if (body) body.style.display = TOP5_HIDDEN ? 'none' : '';
+  if (btn) btn.textContent = TOP5_HIDDEN ? 'Show' : 'Hide';
+}
+
+function renderTop5(){
+  const tb=$('top5-tbody'); if(!tb) return;
+  const p1 = D.cfg.p1 || 'P1';
+  const p2 = D.cfg.p2 || 'P2';
+  const luT=$('top5-th-luca'); if(luT) luT.textContent = p1+' cut';
+  const maT=$('top5-th-mat');  if(maT) maT.textContent = p2+' cut';
+
+  const ranked = D.shows
+    .map(sh => ({sh, pl: showPL(sh)}))
+    .sort((a,b) => b.pl.profit - a.pl.profit)
+    .slice(0, 5);
+
+  if (!ranked.length) { tb.innerHTML = '<tr><td colspan="7"><div class="es">No shows yet</div></td></tr>'; return; }
+
+  tb.innerHTML = ranked.map((r,i) => `
+    <tr>
+      <td style="font-size:11px;color:var(--text3);width:28px;">${i+1}</td>
+      <td><div style="font-weight:600;font-size:12px;">${r.sh.name}</div><div style="font-size:10px;color:var(--text2);">${r.sh.platform||'Whatnot'} · ${r.sh.type||'break'}</div></td>
+      <td style="font-size:11px;">${fmtDate(r.sh.date)}</td>
+      <td>${fmt(r.pl.rev)}</td>
+      <td style="font-weight:600;color:${r.pl.profit>=0?'var(--green)':'var(--red)'};">${fmt(r.pl.profit)}</td>
+      <td style="font-weight:600;color:${r.pl.totalToLuca>=0?'var(--green)':'var(--red)'};">${fmt(r.pl.totalToLuca)}</td>
+      <td style="font-weight:600;color:${r.pl.totalToMat>=0?'var(--green)':'var(--red)'};">${fmt(r.pl.totalToMat)}</td>
+    </tr>
+  `).join('');
+}
+
+function renderShows(filter='all'){
+  // Render Top 5 leaderboard (always shows top 5 across all shows, not filtered)
+  renderTop5();
+
+  // Update sort indicators
+  document.querySelectorAll('.sort-indicator').forEach(s=>{
+    s.classList.remove('asc','desc');
+    if (s.dataset.col === SHOWS_SORT.col) s.classList.add(SHOWS_SORT.dir);
+  });
+
+  // Dynamic labels based on configured partner names
+  const p1 = D.cfg.p1 || 'P1';
+  const p2 = D.cfg.p2 || 'P2';
+  const defLuca = N(D.cfg.split) || 40;
+  const defMat = 100 - defLuca;
+
+  // Update column headers + tab labels
+  // (preserve the inner sort-indicator span by setting only the leading text node)
+  const setHeaderLabel = (el, text) => {
+    if (!el) return;
+    // Find or create a leading text node
+    if (el.firstChild && el.firstChild.nodeType === 3) {
+      el.firstChild.nodeValue = text + ' ';
+    } else {
+      el.insertBefore(document.createTextNode(text + ' '), el.firstChild);
+    }
+  };
+  setHeaderLabel($('th-luca'), p1+' total');
+  setHeaderLabel($('th-mat'),  p2+' total');
+  const tj=$('tab-joint'); if(tj) tj.textContent = 'With ' + p1;
+  const ts=$('tab-solo');  if(ts) ts.textContent = p2 + ' 100%';
+
+  // Populate the bulk-bar dropdown with current partner-aware presets
+  const bs = $('bulk-split');
+  if (bs) {
+    bs.innerHTML = `
+      <option value="">-- Set split to... --</option>
+      <option value="0">0/100 — ${p2} keeps all</option>
+      <option value="default">${defLuca}/${defMat} — default split</option>
+      <option value="100">100/0 — ${p1} keeps all</option>
+      <option value="custom">Custom %...</option>`;
+  }
+
+  const tb=$('shows-body');
+  let shows=filter==='all'?D.shows.slice():D.shows.filter(s=>{
+    const pl=showPL(s);
+    if (filter==='joint') return pl.lucaPct > 0;
+    if (filter==='solo') return pl.lucaPct === 0;
+    return true;
+  });
+
+  // Apply sort. Some columns are computed via showPL, others are direct fields.
+  const computedCols = new Set(['tipsTotal','prizeCost','rev','totalCost','profit','totalToLuca','totalToMat']);
+  const sortVal = (sh) => {
+    const col = SHOWS_SORT.col;
+    if (computedCols.has(col)) return showPL(sh)[col] || 0;
+    if (col === 'spotsSold') return N(sh.spotsSold);
+    if (col === 'date') { const t = Date.parse(sh.date); return isNaN(t) ? 0 : t; }
+    if (col === 'name') return (sh.name || '').toLowerCase();
+    return sh[col];
+  };
+  shows.sort((a,b) => {
+    const av = sortVal(a), bv = sortVal(b);
+    if (av < bv) return SHOWS_SORT.dir === 'asc' ? -1 : 1;
+    if (av > bv) return SHOWS_SORT.dir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  if(!shows.length){tb.innerHTML='<tr><td colspan="13"><div class="es">No shows yet</div></td></tr>'; updateBulkBar(); return;}
+
+  tb.innerHTML=shows.map(sh=>{
+    const pl=showPL(sh);
+
+    // Determine the inline dropdown's selected option from this show's actual split
+    const so = sh.splitOverride;
+    let inlineValue;
+    if (so === '' || so === undefined || so === null) inlineValue = 'default';
+    else if (N(so) === 0) inlineValue = '0';
+    else if (N(so) === 100) inlineValue = '100';
+    else if (N(so) === defLuca) inlineValue = 'default';
+    else inlineValue = 'custom:' + N(so);
+
+    let badge;
+    if (pl.lucaPct === 0) badge = '<span class="bx bpur">0/100</span>';
+    else if (pl.lucaPct === 100) badge = '<span class="bx bb">100/0</span>';
+    else badge = '<span class="bx bb">'+pl.lucaPct+'/'+pl.matPct+'</span>';
+
+    const checked = SHOW_SELECTION.has(sh.id) ? 'checked' : '';
+
+    const customOpt = inlineValue.startsWith('custom:')
+      ? `<option value="${inlineValue}" selected>Custom: ${N(so)}/${100-N(so)}</option>`
+      : '';
+
+    const dropdownHTML = `
+      <select class="row-split" data-id="${sh.id}" onchange="onRowSplitChange(this)" style="font-size:11px;padding:3px 6px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface);color:var(--text);">
+        <option value="0" ${inlineValue==='0'?'selected':''}>0/100</option>
+        <option value="default" ${inlineValue==='default'?'selected':''}>${defLuca}/${defMat}</option>
+        <option value="100" ${inlineValue==='100'?'selected':''}>100/0</option>
+        ${customOpt}
+        <option value="custom">Custom...</option>
+      </select>`;
+
+    return `<tr>
+      <td><input type="checkbox" class="row-check" data-id="${sh.id}" onchange="onRowCheck(this)" ${checked}></td>
+      <td><div style="font-weight:600;font-size:12px;">${sh.name}</div><div style="font-size:10px;color:var(--text2);">${sh.platform||'Whatnot'} · ${sh.type||'break'}</div></td>
+      <td style="font-size:11px;">${fmtDate(sh.date)}</td>
+      <td>${badge}<div style="margin-top:3px;">${dropdownHTML}</div></td>
+      <td style="font-size:11px;">${N(sh.spotsSold)}/${N(sh.spotsTotal)} × ${fmt(sh.spotPrice)}</td>
+      <td style="color:var(--green);font-size:11px;">${fmt(pl.tipsTotal)}</td>
+      <td style="color:var(--amber);font-size:11px;">${fmt(pl.prizeCost)}</td>
+      <td>${fmt(pl.rev)}</td>
+      <td style="color:var(--red);">${fmt(pl.totalCost)}</td>
+      <td style="font-weight:600;color:${pl.profit>=0?'var(--green)':'var(--red)'};">${fmt(pl.profit)}</td>
+      <td style="font-weight:600;color:${pl.totalToLuca>=0?'var(--green)':'var(--red)'};">${fmt(pl.totalToLuca)}</td>
+      <td style="font-weight:600;color:${pl.totalToMat>=0?'var(--green)':'var(--red)'};">${fmt(pl.totalToMat)}</td>
+      <td style="display:flex;gap:4px;flex-wrap:wrap;">
+        <button class="btn btns" onclick="showDetail('${sh.id}')">Detail</button>
+        <button class="btn btns btnd" onclick="delItem('Shows','${sh.id}')">×</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  updateBulkBar();
+}
+
+// ── Bulk selection helpers ────────────────────────────────────
+function onRowCheck(cb){
+  const id = cb.dataset.id;
+  if (cb.checked) SHOW_SELECTION.add(id);
+  else SHOW_SELECTION.delete(id);
+  updateBulkBar();
+}
+
+function toggleSelectAll(cb){
+  const checks = document.querySelectorAll('.row-check');
+  checks.forEach(c => {
+    c.checked = cb.checked;
+    if (cb.checked) SHOW_SELECTION.add(c.dataset.id);
+    else SHOW_SELECTION.delete(c.dataset.id);
+  });
+  updateBulkBar();
+}
+
+function bulkClearSelection(){
+  SHOW_SELECTION.clear();
+  document.querySelectorAll('.row-check').forEach(c => c.checked = false);
+  const sa = $('select-all'); if (sa) sa.checked = false;
+  updateBulkBar();
+}
+
+function updateBulkBar(){
+  const bar = $('bulk-bar');
+  const count = SHOW_SELECTION.size;
+  const cntEl = $('bulk-count');
+  if (cntEl) cntEl.textContent = count;
+  if (bar) bar.style.display = count > 0 ? 'flex' : 'none';
+}
+
+// ── Inline single-row split change ────────────────────────────
+async function onRowSplitChange(sel){
+  const id = sel.dataset.id;
+  const v = sel.value;
+  const sh = D.shows.find(s => s.id === id);
+  if (!sh) return;
+  let override = '';
+  if (v === '0') override = '0';
+  else if (v === '100') override = '100';
+  else if (v === 'default') override = '';
+  else if (v.startsWith('custom:')) override = v.split(':')[1];
+  else if (v === 'custom') {
+    const input = prompt('Enter ' + (D.cfg.p1||'P1') + "'s % (0-100):", String(N(D.cfg.split)||40));
+    if (input === null) { renderShows(currentShowsFilter()); return; } // cancelled — revert UI
+    const num = N(input);
+    if (isNaN(num) || num < 0 || num > 100) { alert('Invalid number'); renderShows(currentShowsFilter()); return; }
+    override = String(num);
+  }
+  showLdr('Saving split...');
+  await api({action:'updateShow', id:id, data:{splitOverride: override}});
+  await loadAll(); hideLdr();
+}
+
+// ── Bulk apply ────────────────────────────────────────────────
+async function bulkApplySplit(){
+  const choice = $('bulk-split').value;
+  if (!choice) { alert('Pick a split first.'); return; }
+  if (SHOW_SELECTION.size === 0) { alert('No shows selected.'); return; }
+
+  let override;
+  let label;
+  const p1 = D.cfg.p1 || 'P1';
+  const p2 = D.cfg.p2 || 'P2';
+  const defLuca = N(D.cfg.split) || 40;
+
+  if (choice === '0')         { override = '0';            label = '0/100 (' + p2 + ' keeps all)'; }
+  else if (choice === '100')  { override = '100';          label = '100/0 (' + p1 + ' keeps all)'; }
+  else if (choice === 'default') { override = '';          label = 'default ' + defLuca + '/' + (100-defLuca); }
+  else if (choice === 'custom') {
+    const input = prompt('Enter ' + p1 + "'s % (0-100):", String(defLuca));
+    if (input === null) return;
+    const num = N(input);
+    if (isNaN(num) || num < 0 || num > 100) { alert('Invalid number'); return; }
+    override = String(num);
+    label = num + '/' + (100-num);
+  } else { return; }
+
+  if (!confirm('Apply ' + label + ' to ' + SHOW_SELECTION.size + ' show' + (SHOW_SELECTION.size===1?'':'s') + '?\n\nThis updates the split override for each selected show.')) return;
+
+  showLdr('Updating ' + SHOW_SELECTION.size + ' show' + (SHOW_SELECTION.size===1?'':'s') + '...');
+  const ids = Array.from(SHOW_SELECTION);
+  let ok = 0, fail = 0;
+  for (const id of ids) {
+    const r = await api({action:'updateShow', id:id, data:{splitOverride: override}});
+    if (r && r.success) ok++; else fail++;
+  }
+  SHOW_SELECTION.clear();
+  await loadAll();
+  hideLdr();
+  if (fail > 0) alert('Updated ' + ok + ' show(s). ' + fail + ' failed — check console.');
+}
+
+// Track which filter is currently active so cancel-from-prompt re-renders correctly
+let SHOWS_FILTER = 'all';
+function currentShowsFilter(){ return SHOWS_FILTER; }
+function fShows(f,btn){
+  document.querySelectorAll('#pg-shows .tab').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  // Clear selection when changing filter — avoids applying bulk actions to hidden rows
+  SHOW_SELECTION.clear();
+  SHOWS_FILTER = f;
+  renderShows(f);
+}
+
+// ── SHOW DETAIL TAB ────────────────────────────────────────────
+// Persistent show-detail page (separate from the modal launched from Shows table).
+// Lets you pick any show from a date-sorted dropdown and see its full P&L breakdown.
+let DETAIL_SELECTED_ID = null;
+let DETAIL_PRIZES_OPEN = true;
+
+function renderDetailTab(){
+  const sel = $('detail-select');
+  const cnt = $('detail-count');
+  if (!sel) return;
+
+  // Sort shows by date desc (most recent first)
+  const sorted = D.shows.slice().sort((a,b) => {
+    const ta = Date.parse(a.date), tb = Date.parse(b.date);
+    if (isNaN(ta) && isNaN(tb)) return 0;
+    if (isNaN(ta)) return 1;
+    if (isNaN(tb)) return -1;
+    return tb - ta;
+  });
+
+  if (cnt) cnt.textContent = sorted.length + ' show' + (sorted.length===1?'':'s');
+
+  if (!sorted.length){
+    sel.innerHTML = '<option value="">No shows yet</option>';
+    $('detail-panel').innerHTML = '<div class="card"><div class="es">No shows yet — create one from the Shows tab or wait for the next CSV import.</div></div>';
+    return;
+  }
+
+  // Default to most recent if nothing selected, or if previously-selected show is gone
+  if (!DETAIL_SELECTED_ID || !sorted.find(s => s.id === DETAIL_SELECTED_ID)) {
+    DETAIL_SELECTED_ID = sorted[0].id;
+  }
+
+  sel.innerHTML = sorted.map(sh => {
+    const dateLabel = fmtDate(sh.date);
+    const name = sh.name || '(unnamed)';
+    return `<option value="${sh.id}" ${sh.id===DETAIL_SELECTED_ID?'selected':''}>${dateLabel} — ${name}</option>`;
+  }).join('');
+
+  renderDetailPanel(DETAIL_SELECTED_ID);
+}
+
+function renderDetailPanel(showId){
+  DETAIL_SELECTED_ID = showId;
+  const panel = $('detail-panel');
+  if (!panel) return;
+  const sh = D.shows.find(s => s.id === showId);
+  if (!sh){ panel.innerHTML = ''; return; }
+
+  const pl = showPL(sh);
+  const allPrizes = showPrizesFor(showId);
+  const manualPrizes = allPrizes.filter(isManualPrize);
+  const giveawayPrizes = allPrizes.filter(p => !isManualPrize(p));
+  const tipsArr = showTipsFor(showId);
+
+  const p1 = D.cfg.p1 || 'P1';
+  const p2 = D.cfg.p2 || 'P2';
+
+  // Itemized prize list (manual prizes only — these are the ones in the profit math)
+  const prizeListHTML = manualPrizes.length
+    ? manualPrizes.map(p => {
+        const v = N(p.valuation) || N(p.discountedValue);
+        const vp = N(p.valuationPct) || N(p.discountPct);
+        const mkt = N(p.marketValue);
+        const os = (p.ownerShare===''||p.ownerShare===undefined||p.ownerShare===null) ? '' : N(p.ownerShare);
+        const ownerLabel = os===''?'<span style="color:var(--red)">⚠ unset</span>'
+                          : os===0?p2
+                          : os===100?p1
+                          : os===50?'Joint 50/50'
+                          : p1+' '+os+'%';
+        return `<div class="prize-summary">
+          <div>
+            <div style="font-weight:600;">${p.card||'(unnamed)'}</div>
+            <div style="font-size:10px;color:var(--text2);">Market ${fmt(mkt)} × ${vp}% · Owner: ${ownerLabel}${p.winner?' · Won by @'+p.winner:''}</div>
+          </div>
+          <div style="font-weight:600;color:var(--amber);">${fmt(v)}</div>
+        </div>`;
+      }).join('')
+    : '<div style="font-size:12px;color:var(--text2);padding:8px 0;">No manual prizes logged for this show.</div>';
+
+  // Optional giveaway list (display only — not in profit math)
+  const giveawayListHTML = giveawayPrizes.length
+    ? `<div style="margin-top:.875rem;">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:6px;">Auto-imported giveaways (display only — not counted in profit):</div>
+        ${giveawayPrizes.map(p => {
+          const v = N(p.valuation) || N(p.discountedValue);
+          return `<div class="prize-summary" style="opacity:.75;">
+            <div>
+              <div style="font-weight:500;">${p.card||'Giveaway'}</div>
+              <div style="font-size:10px;color:var(--text2);">${p.winner?'Won by @'+p.winner:'No winner recorded'}</div>
+            </div>
+            <div style="color:var(--text2);">${fmt(v)}</div>
+          </div>`;
+        }).join('')}
+      </div>`
+    : '';
+
+  panel.innerHTML = `
+    <!-- Header / show meta -->
+    <div class="card">
+      <div class="ch">
+        <div>
+          <span class="ct">${sh.name||'(unnamed)'}</span>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px;">${fmtDate(sh.date)} · ${sh.platform||'Whatnot'} · ${sh.type||'break'} · Split ${pl.lucaPct}/${pl.matPct}</div>
+        </div>
+        <button class="btn btns" onclick="showDetail('${showId}')">Open editor</button>
+      </div>
+
+      <!-- Headline metrics -->
+      <div class="g4">
+        <div class="met">
+          <div class="ml">Revenue</div>
+          <div class="mv">${fmt(pl.rev)}</div>
+          <div class="ms">spots ${fmt(sh.spotsRev)} + tips ${fmt(pl.tipsTotal)}</div>
+        </div>
+        <div class="met">
+          <div class="ml">Fees</div>
+          <div class="mv r">${fmt(pl.fees)}</div>
+          <div class="ms">Whatnot + processing</div>
+        </div>
+        <div class="met">
+          <div class="ml">Valuations</div>
+          <div class="mv" style="color:var(--amber);">${fmt(pl.prizeCost)}</div>
+          <div class="ms">${manualPrizes.length} manual prize${manualPrizes.length===1?'':'s'}</div>
+        </div>
+        <div class="met">
+          <div class="ml">Net profit</div>
+          <div class="mv ${pl.profit>=0?'g':'r'}">${fmt(pl.profit)}</div>
+          <div class="ms">to split ${pl.lucaPct}/${pl.matPct}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P&L breakdown -->
+    <div class="card">
+      <div class="ch"><span class="ct">Profit breakdown</span></div>
+      <div class="detail-line"><span class="lbl">Spots revenue</span><span class="val">${fmt(sh.spotsRev)}</span></div>
+      <div class="detail-line"><span class="lbl">Tips</span><span class="val" style="color:var(--green);">${fmt(pl.tipsTotal)}</span></div>
+      <div class="detail-line total"><span class="lbl">Revenue</span><span class="val">${fmt(pl.rev)}</span></div>
+      <div class="detail-line"><span class="lbl">− Whatnot fees</span><span class="val" style="color:var(--red);">−${fmt(pl.fees)}</span></div>
+      <div class="detail-line"><span class="lbl">− Manual prize valuations</span><span class="val" style="color:var(--amber);">−${fmt(pl.prizeCost)}</span></div>
+      <div class="detail-line"><span class="lbl">− Pack / box cost</span><span class="val" style="color:${pl.packCost>0?'var(--red)':'var(--text3)'};">−${fmt(pl.packCost)}</span></div>
+      <div class="detail-line"><span class="lbl">− Other costs</span><span class="val" style="color:${pl.otherCost>0?'var(--red)':'var(--text3)'};">−${fmt(pl.otherCost)}</span></div>
+      ${pl.sixkillaExpense>0?`<div class="detail-line"><span class="lbl">− @${D.cfg.reimbursementBuyer} bids reimbursement (${pl.sixkillaCount} txn${pl.sixkillaCount===1?'':'s'}, owed to ${D.cfg.reimbursementBuyerOwedTo==='P2'?D.cfg.p2:D.cfg.p1})</span><span class="val" style="color:var(--purple);">−${fmt(pl.sixkillaExpense)}</span></div>`:''}
+      <div class="detail-line total"><span class="lbl">Net profit</span><span class="val ${pl.profit>=0?'g':'r'}" style="color:${pl.profit>=0?'var(--green)':'var(--red)'};">${fmt(pl.profit)}</span></div>
+      ${pl.giveawayCost>0?`<div style="font-size:11px;color:var(--text3);margin-top:8px;font-style:italic;">Note: ${fmt(pl.giveawayCost)} in auto-imported giveaways excluded from profit math (manual prizes only).</div>`:''}
+    </div>
+
+    <!-- Per-partner totals -->
+    <div class="card">
+      <div class="ch"><span class="ct">Per-partner totals</span></div>
+      <div class="g2">
+        <div class="split-card">
+          <div class="sc-name">${p1} (${pl.lucaPct}%)</div>
+          <div class="sc-pct">Profit cut: ${fmt(pl.profitToLuca)} · Card valuations: ${fmt(pl.valuationToLuca)}${pl.sixkillaToLuca>0?' · @'+D.cfg.reimbursementBuyer+' reimburse: '+fmt(pl.sixkillaToLuca):''}</div>
+          <div class="sc-amt ${pl.totalToLuca>=0?'g':'r'}">${fmt(pl.totalToLuca)}</div>
+        </div>
+        <div class="split-card">
+          <div class="sc-name">${p2} (${pl.matPct}%)</div>
+          <div class="sc-pct">Profit cut: ${fmt(pl.profitToMat)} · Card valuations: ${fmt(pl.valuationToMat)}${pl.sixkillaToMat>0?' · @'+D.cfg.reimbursementBuyer+' reimburse: '+fmt(pl.sixkillaToMat):''}</div>
+          <div class="sc-amt ${pl.totalToMat>=0?'g':'r'}">${fmt(pl.totalToMat)}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Itemized prize list -->
+    <div class="card">
+      <div class="ch">
+        <span class="collapse-toggle ${DETAIL_PRIZES_OPEN?'open':''}" onclick="toggleDetailPrizes()">
+          <span class="arrow">▶</span>
+          <span class="ct">Manual prizes — ${manualPrizes.length} item${manualPrizes.length===1?'':'s'} · ${fmt(pl.prizeCost)}</span>
+        </span>
+        <button class="btn btns" onclick="showDetail('${showId}')">+ Add prize</button>
+      </div>
+      <div id="detail-prize-body" style="display:${DETAIL_PRIZES_OPEN?'block':'none'};">
+        ${prizeListHTML}
+        ${giveawayListHTML}
+      </div>
+    </div>
+
+    ${tipsArr.length?`<div class="card">
+      <div class="ch"><span class="ct">Tips — ${fmt(pl.tipsTotal)}</span></div>
+      ${tipsArr.map(t=>`<div class="detail-line"><span class="lbl">@${t.fromUser||'viewer'}</span><span class="val" style="color:var(--green);">${fmt(t.amt)}</span></div>`).join('')}
+    </div>`:''}
+  `;
+}
+
+function toggleDetailPrizes(){
+  DETAIL_PRIZES_OPEN = !DETAIL_PRIZES_OPEN;
+  const body = $('detail-prize-body');
+  const toggle = document.querySelector('.collapse-toggle');
+  if (body) body.style.display = DETAIL_PRIZES_OPEN ? 'block' : 'none';
+  if (toggle) toggle.classList.toggle('open', DETAIL_PRIZES_OPEN);
+}
+
+// ── SALES ──────────────────────────────────────────────────────
+function renderSales(){
+  const tb=$('sales-body');
+  if(!D.sales.length){tb.innerHTML='<tr><td colspan="10"><div class="es">No sales yet</div></td></tr>';return;}
+  tb.innerHTML=[...D.sales].reverse().map(s=>{
+    const net=N(s.price)-N(s.fees);
+    const profit=net-N(s.cost);
+    const show=D.shows.find(sh=>sh.id===s.showId);
+    return `<tr>
+      <td><div style="font-weight:600;font-size:12px;">${s.item}</div>${s.buyer?`<div style="font-size:10px;color:var(--text2);">@${s.buyer}</div>`:''}</td>
+      <td style="font-size:11px;">${s.date||'—'}</td>
+      <td style="font-size:11px;color:var(--text2);">${show?show.name.substring(0,20)+'…':'—'}</td>
+      <td><span class="bx bb">${s.platform||'Whatnot'}</span></td>
+      <td>${fmt(s.price)}</td>
+      <td style="color:var(--red);">-${fmt(s.fees)}</td>
+      <td>${fmt(net)}</td>
+      <td style="color:var(--text2);">${fmt(s.cost)}</td>
+      <td style="font-weight:600;color:${profit>=0?'var(--green)':'var(--red)'};">${fmt(profit)}</td>
+      <td><button class="btn btns btnd" onclick="delItem('Sales','${s.id}')">×</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── SHOW DETAIL MODAL (legacy editor — opened from Shows table) ────
+function showDetail(showId){
+  const sh=D.shows.find(s=>s.id===showId);if(!sh)return;
+  const pl=showPL(sh);
+  const prizes=showPrizesFor(showId);
+  const tipsArr=showTipsFor(showId);
+
+  const pHTML=prizes.length?prizes.map(p=>{
+    const v = N(p.valuation) || N(p.discountedValue);
+    const vp = N(p.valuationPct) || N(p.discountPct);
+    const oc = N(p.originalCost);
+    const os = (p.ownerShare===''||p.ownerShare===undefined||p.ownerShare===null) ? '' : N(p.ownerShare);
+    const ownerLabel = os===''?'<span style="color:var(--red)">⚠ owner not set</span>'
+                      : os===0?D.cfg.p2+' 100%'
+                      : os===100?D.cfg.p1+' 100%'
+                      : D.cfg.p1+' '+os+'% / '+D.cfg.p2+' '+(100-os)+'%';
+    const isManual = isManualPrize(p);
+    const tag = isManual ? '' : ' <span class="bx bp" style="font-size:10px;">giveaway · not in profit</span>';
+    return `
+    <div class="prize-summary">
+      <div>
+        <div style="font-weight:600;">${p.card}${tag}</div>
+        <div style="font-size:10px;color:var(--text2);">Market: ${fmt(p.marketValue)} · Valuation: ${vp}% · Owner: ${ownerLabel}${oc>0?' · Original cost: '+fmt(oc):''} · Winner: @${p.winner||'—'}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-weight:600;color:var(--amber);">${fmt(v)}</span>
+        <button class="btn btns btnd" onclick="delPrize('${p.id}','${showId}')">×</button>
+      </div>
+    </div>`;}).join(''):'<div style="font-size:12px;color:var(--text2);padding:6px 0;">No prizes logged yet</div>';
+
+  const tHTML=tipsArr.length?tipsArr.map(t=>`
+    <div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border);">
+      <span style="color:var(--text2);">${t.fromUser||'viewer'}</span>
+      <span style="font-weight:600;color:var(--green);">${fmt(t.amt)}</span>
+    </div>`).join(''):'<div style="font-size:12px;color:var(--text2);">No tips logged</div>';
+
+  // Inventory dropdown for prize linking — Matt-owned cards in prize/available status
+  const eligibleInv = D.inv.filter(i=>i.status==='available'||i.status==='prize');
+  const invOpts = eligibleInv.map(i=>{
+    const os = (i.ownerShare===''||i.ownerShare===undefined||i.ownerShare===null) ? '' : N(i.ownerShare);
+    const ownerTag = os===''?'?':os===0?'M':os===100?'L':os+'%L';
+    return `<option value="${i.id}" data-cl="${i.clValue||''}" data-cost="${i.cost||''}" data-share="${os===''?'':os}">[${ownerTag}] ${i.player} ${i.year||''} ${i.grade?'('+i.gradeCo+' '+i.grade+')':''}</option>`;
+  }).join('');
+
+  // Split badge / override input
+  const splitOver = sh.splitOverride;
+  const splitDisplay = (splitOver===''||splitOver===undefined||splitOver===null)
+    ? `Default ${pl.lucaPct}/${pl.matPct}`
+    : `Override ${pl.lucaPct}/${pl.matPct}`;
+
+  $('modwrap').innerHTML=`<div class="ov" onclick="maybeClose(event)"><div class="mo" style="max-width:760px;">
+    <div class="mt">${sh.name}</div>
+
+    <!-- Split control -->
+    <div style="background:var(--surface2);border-radius:var(--r);padding:.75rem;margin-bottom:1rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <div style="font-size:12px;font-weight:600;">Profit split: ${splitDisplay}</div>
+      <div style="flex:1;min-width:200px;display:flex;gap:6px;align-items:center;">
+        <label style="font-size:11px;color:var(--text2);">Override (${D.cfg.p1}'s %):</label>
+        <input type="number" id="sh-override" min="0" max="100" placeholder="(default ${D.cfg.split}%)" value="${splitOver===''||splitOver===undefined||splitOver===null?'':splitOver}" style="width:80px;font-size:12px;padding:4px 7px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface);color:var(--text);">
+        <button class="btn btns" onclick="saveSplitOverride('${showId}')">Save</button>
+        <button class="btn btns btnd" onclick="clearSplitOverride('${showId}')">Use default</button>
+      </div>
+    </div>
+
+    <!-- P&L breakdown -->
+    <div class="g4" style="margin-bottom:.5rem;">
+      <div class="met"><div class="ml">Revenue</div><div class="mv">${fmt(pl.rev)}</div><div class="ms">spots ${fmt(sh.spotsRev)} + tips ${fmt(pl.tipsTotal)}</div></div>
+      <div class="met"><div class="ml">Manual valuations</div><div class="mv" style="color:var(--amber);">${fmt(pl.prizeCost)}</div><div class="ms">in profit math</div></div>
+      <div class="met"><div class="ml">Other costs</div><div class="mv r">${fmt(pl.packCost+pl.otherCost+pl.fees)}</div><div class="ms">packs + other + fees</div></div>
+      <div class="met"><div class="ml">Net profit</div><div class="mv ${pl.profit>=0?'g':'r'}">${fmt(pl.profit)}</div><div class="ms">to split ${pl.lucaPct}/${pl.matPct}</div></div>
+    </div>
+
+    <!-- Per-partner totals: profit + valuations -->
+    <div style="background:var(--surface2);border-radius:var(--r);padding:.875rem;margin-bottom:1rem;">
+      <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px;">Final per-partner totals (profit split + valuation payouts)</div>
+      <div class="g2">
+        <div style="background:var(--surface);border-radius:var(--r);padding:.75rem;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px;">${D.cfg.p1} (${pl.lucaPct}%)</div>
+          <div style="font-size:11px;color:var(--text2);">Profit: ${fmt(pl.profitToLuca)}</div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Valuations: ${fmt(pl.valuationToLuca)}</div>
+          <div style="font-size:18px;font-weight:600;color:${pl.totalToLuca>=0?'var(--green)':'var(--red)'};">${fmt(pl.totalToLuca)}</div>
+        </div>
+        <div style="background:var(--surface);border-radius:var(--r);padding:.75rem;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px;">${D.cfg.p2} (${pl.matPct}%)</div>
+          <div style="font-size:11px;color:var(--text2);">Profit: ${fmt(pl.profitToMat)}</div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Valuations: ${fmt(pl.valuationToMat)}</div>
+          <div style="font-size:18px;font-weight:600;color:${pl.totalToMat>=0?'var(--green)':'var(--red)'};">${fmt(pl.totalToMat)}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRIZES -->
+    <div style="margin-bottom:1rem;">
+      <div style="font-size:12px;font-weight:600;margin-bottom:8px;">All prizes — manual count toward profit (${fmt(pl.prizeCost)}); giveaways shown for reference</div>
+      ${pHTML}
+      <div style="background:var(--surface2);border-radius:var(--r);padding:.875rem;margin-top:8px;">
+        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px;">+ Add prize card</div>
+        <div class="fg"><label>Link from inventory (auto-fills below)</label><select id="pz-inv" onchange="prizeLinkInv(this)"><option value="">-- Manual entry --</option>${invOpts}</select></div>
+        <div class="g2">
+          <div class="fg"><label>Card name</label><input id="pz-card" type="text" placeholder="Messi 2024 Select"></div>
+          <div class="fg"><label>Winner (@username)</label><input id="pz-win" type="text" placeholder="buyer123"></div>
+        </div>
+        <div class="g3">
+          <div class="fg"><label>Market value (CA$)</label><input id="pz-mkt" type="number" step="0.01" placeholder="200.00" oninput="calcValuation()"></div>
+          <div class="fg"><label>Valuation % (default ${D.cfg.valuationPct}%)</label><input id="pz-vp" type="number" step="0.5" value="${D.cfg.valuationPct}" oninput="calcValuation()"></div>
+          <div class="fg"><label>Valuation amount (auto)</label><input id="pz-val" type="number" step="0.01" placeholder="0.00" style="opacity:.7;" readonly></div>
+        </div>
+        <div class="g3">
+          <div class="fg"><label>Owner</label>
+            <select id="pz-own">
+              <option value="0">${D.cfg.p2} 100%</option>
+              <option value="100">${D.cfg.p1} 100%</option>
+              <option value="50">Joint 50/50</option>
+              <option value="custom">Custom %</option>
+            </select>
+          </div>
+          <div class="fg" id="pz-own-custom-wrap" style="display:none;"><label>${D.cfg.p1}'s %</label><input id="pz-own-custom" type="number" min="0" max="100" placeholder="50"></div>
+          <div class="fg"><label>Original cost (optional)</label><input id="pz-orig" type="number" step="0.01" placeholder="0.00"></div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;"><button class="btn btnp" onclick="addPrize('${showId}')">Add prize</button></div>
+      </div>
+    </div>
+
+    <!-- TIPS -->
+    <div style="margin-bottom:1rem;">
+      <div style="font-size:12px;font-weight:600;margin-bottom:8px;">Viewer tips — total: ${fmt(pl.tipsTotal)}</div>
+      ${tHTML}
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+        <input id="tip-from" type="text" placeholder="@username" style="flex:1;min-width:100px;font-size:12px;padding:5px 8px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface);color:var(--text);">
+        <input id="tip-amt" type="number" placeholder="CA$ amount" style="width:110px;font-size:12px;padding:5px 8px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface);color:var(--text);">
+        <button class="btn btns" onclick="addTip('${showId}')">Add tip</button>
+      </div>
+    </div>
+
+    <div class="mf"><button class="btn btnp" onclick="closeMod();loadAll();">Done</button></div>
+  </div></div>`;
+
+  // Wire owner-custom toggle
+  const ownSel = $('pz-own');
+  if (ownSel) ownSel.addEventListener('change', () => {
+    $('pz-own-custom-wrap').style.display = ownSel.value === 'custom' ? 'flex' : 'none';
+  });
+}
+
+function calcValuation(){
+  const mkt = N($('pz-mkt') && $('pz-mkt').value);
+  const vp  = N($('pz-vp')  && $('pz-vp').value)  || N(D.cfg.valuationPct) || 85;
+  const v   = $('pz-val');
+  if (v) v.value = (mkt * vp / 100).toFixed(2);
+}
+
+// Auto-fill prize fields when an inventory card is selected
+function prizeLinkInv(sel){
+  const opt = sel.options[sel.selectedIndex];
+  if (!opt || !opt.value) return;
+  const inv = D.inv.find(i => i.id === opt.value);
+  if (!inv) return;
+  $('pz-card').value = [inv.player, inv.year, inv.brand, inv.cardNum, inv.variation].filter(Boolean).join(' ');
+  if (inv.clValue) { $('pz-mkt').value = inv.clValue; calcValuation(); }
+  if (inv.cost) $('pz-orig').value = inv.cost;
+  const share = opt.dataset.share;
+  const ownSel = $('pz-own');
+  if (share === '0' || share === '50' || share === '100') {
+    ownSel.value = share;
+    $('pz-own-custom-wrap').style.display = 'none';
+  } else if (share !== '' && !isNaN(N(share))) {
+    ownSel.value = 'custom';
+    $('pz-own-custom-wrap').style.display = 'flex';
+    $('pz-own-custom').value = share;
+  }
+  // Stash the inventory ID on a hidden input so we can save it
+  let h = $('pz-inv-id');
+  if (!h) {
+    h = document.createElement('input');
+    h.type = 'hidden';
+    h.id = 'pz-inv-id';
+    sel.parentNode.appendChild(h);
+  }
+  h.value = inv.id;
+}
+
+async function saveSplitOverride(showId){
+  const v = $('sh-override').value;
+  const send = (v === '' || v === null || v === undefined) ? '' : String(N(v));
+  showLdr('Saving...');
+  await api({action:'updateShow', id:showId, data:{splitOverride: send}});
+  await loadAll(); hideLdr(); showDetail(showId);
+}
+async function clearSplitOverride(showId){
+  showLdr('Clearing...');
+  await api({action:'updateShow', id:showId, data:{splitOverride: ''}});
+  await loadAll(); hideLdr(); showDetail(showId);
+}
+
+async function addPrize(showId){
+  const card=$('pz-card').value.trim();if(!card){alert('Card name required');return;}
+  const mkt=N($('pz-mkt').value);
+  const vp=N($('pz-vp').value)||N(D.cfg.valuationPct)||85;
+  const v=(mkt*vp/100);
+  const ownSel=$('pz-own').value;
+  const ownerShare = ownSel==='custom' ? Math.max(0,Math.min(100,N($('pz-own-custom').value))) : N(ownSel);
+  const orig = $('pz-orig').value;
+  const invIdEl = $('pz-inv-id');
+  const invId = invIdEl ? invIdEl.value : '';
+  showLdr('Adding prize...');
+  await api({action:'addPrize',data:{
+    showId,
+    card,
+    marketValue:mkt.toFixed(2),
+    valuationPct:String(vp),
+    valuation:v.toFixed(2),
+    // legacy fields kept populated so older P&L code (if any) still works
+    discountPct:String(100-vp),
+    discountedValue:v.toFixed(2),
+    originalCost: orig===''||orig===null||orig===undefined?'':N(orig).toFixed(2),
+    ownerShare: String(ownerShare),
+    winner:$('pz-win').value.trim(),
+    invId: invId
+  }});
+  await loadAll();hideLdr();showDetail(showId);
+}
+async function delPrize(id,showId){
+  if(!confirm('Remove this prize?'))return;
+  showLdr('Removing...');
+  await api({action:'deletePrize',id});
+  await loadAll();hideLdr();showDetail(showId);
+}
+async function addTip(showId){
+  const amt=N($('tip-amt').value);if(!amt)return;
+  showLdr('Adding tip...');
+  await api({action:'addTip',data:{showId,fromUser:$('tip-from').value.trim(),amt}});
+  const sh=D.shows.find(s=>s.id===showId);
+  if(sh) await api({action:'updateShow',id:showId,data:{tips:N(sh.tips)+amt}});
+  await loadAll();hideLdr();showDetail(showId);
+}
+
+// ── MODALS ────────────────────────────────────────────────────
+function openMod(type){
+  let h='';
+  if(type==='inv'){
+    h=`<div class="mo"><div class="mt">Add card to inventory</div>
+      <div class="g2"><div class="fg"><label>Player / card name *</label><input id="i-pl" type="text" placeholder="Lionel Messi"></div><div class="fg"><label>Year</label><input id="i-yr" type="text" placeholder="2024"></div></div>
+      <div class="g3"><div class="fg"><label>Brand / set</label><input id="i-br" type="text" placeholder="Panini Select"></div><div class="fg"><label>Card #</label><input id="i-cn" type="text"></div><div class="fg"><label>Variation</label><input id="i-vr" type="text" placeholder="RC, Auto..."></div></div>
+      <div class="g3"><div class="fg"><label>Grading co.</label><select id="i-gc"><option>PSA</option><option>BGS</option><option>SGC</option><option>CGC</option><option>Raw</option></select></div><div class="fg"><label>Grade</label><input id="i-gr" type="text" placeholder="10, 9.5..."></div><div class="fg"><label>Cert #</label><input id="i-ce" type="text"></div></div>
+      <div class="g3"><div class="fg"><label>Cost paid (CA$) *</label><input id="i-co" type="number" step="0.01" placeholder="0.00"></div><div class="fg"><label>CL / eBay value (CA$)</label><input id="i-cl" type="number" step="0.01" placeholder="0.00"></div><div class="fg"><label>Source</label><select id="i-so"><option>Pack pull</option><option>Collection buy</option><option>Single purchase</option><option>Show/event</option><option>Previously purchased</option><option>Trade</option><option>Whatnot buy</option><option>eBay buy</option><option>Other</option></select></div></div>
+      <div class="g3">
+        <div class="fg"><label>Owner</label><select id="i-own"><option value="0">${D.cfg.p2} 100%</option><option value="100">${D.cfg.p1} 100%</option><option value="50">Joint 50/50</option><option value="custom">Custom %</option></select></div>
+        <div class="fg" id="i-own-custom-wrap" style="display:none;"><label>${D.cfg.p1}'s %</label><input id="i-own-custom" type="number" min="0" max="100" placeholder="50"></div>
+        <div class="fg"><label>Status</label><select id="i-st"><option value="available">Available</option><option value="prize">Prize pool</option><option value="consigned">Consigned</option><option value="sold">Sold</option></select></div>
+      </div>
+      <div class="fg"><label>Notes</label><input id="i-no" type="text" placeholder="Box name, event..."></div>
+      <div class="mf"><button class="btn" onclick="closeMod()">Cancel</button><button class="btn btnp" onclick="saveInv()">Add card</button></div></div>`;
+  } else if(type==='bulk'){
+    h=`<div class="mo"><div class="mt">Bulk add — pack / box pulls</div>
+      <div class="g2"><div class="fg"><label>Box / pack name</label><input id="b-box" type="text" placeholder="2024-25 Panini Select FIFA Hobby"></div><div class="fg"><label>Total box cost (CA$)</label><input id="b-cost" type="number" step="0.01" placeholder="0.00"></div></div>
+      <div class="g2">
+        <div class="fg"><label>Owner</label><select id="b-own"><option value="0">${D.cfg.p2} 100%</option><option value="100">${D.cfg.p1} 100%</option><option value="50">Joint 50/50</option><option value="custom">Custom %</option></select></div>
+        <div class="fg" id="b-own-custom-wrap" style="display:none;"><label>${D.cfg.p1}'s %</label><input id="b-own-custom" type="number" min="0" max="100" placeholder="50"></div>
+      </div>
+      <div class="fg"><label>Cards pulled — one per line: Player, Year, Grade, CL Value</label><textarea id="b-cards" placeholder="Lionel Messi, 2024, PSA 10, 500&#10;Erling Haaland, 2024, Raw, 45" style="min-height:120px;"></textarea></div>
+      <p style="font-size:11px;color:var(--text3);margin-bottom:.5rem;">Cost split evenly. Grade and CL value optional.</p>
+      <div class="mf"><button class="btn" onclick="closeMod()">Cancel</button><button class="btn btnp" onclick="saveBulk()">Add pulls</button></div></div>`;
+  } else if(type==='show'){
+    h=`<div class="mo"><div class="mt">New show / break</div>
+      <div class="g2"><div class="fg"><label>Show name *</label><input id="sh-n" type="text" placeholder="Golden Goal Game #5"></div><div class="fg"><label>Date</label><input id="sh-d" type="date" value="${today()}"></div></div>
+      <div class="g3">
+        <div class="fg"><label>Type</label><select id="sh-t"><option>crack</option><option>break</option><option>auction</option><option>mystery</option><option>random team</option><option>golden goal</option></select></div>
+        <div class="fg"><label>Platform</label><select id="sh-p"><option>Whatnot</option><option>In-person</option><option>Other</option></select></div>
+        <div class="fg"><label>Whatnot show ID</label><input id="sh-wid" type="text" placeholder="Optional — for CSV linking"></div>
+      </div>
+      <div class="fg">
+        <label>Profit split</label>
+        <select id="sh-own">
+          <option value="joint">Joint — use default ${D.cfg.split}/${100-D.cfg.split} split</option>
+          <option value="solo">Pre-${D.cfg.p1} / ${D.cfg.p2}-only — ${D.cfg.p2} keeps 100%</option>
+        </select>
+        <p style="font-size:10px;color:var(--text3);margin-top:3px;">You can also set a custom split per-show in the show detail view after creating it.</p>
+      </div>
+      <div id="sh-joint-fields">
+        <div class="g3">
+          <div class="fg"><label>Total spots</label><input id="sh-st" type="number" placeholder="40"></div>
+          <div class="fg"><label>Spots sold</label><input id="sh-ss" type="number" placeholder="40" oninput="calcSpotsRev()"></div>
+          <div class="fg"><label>Price / spot (CA$)</label><input id="sh-sp" type="number" step="0.01" placeholder="0.00" oninput="calcSpotsRev()"></div>
+        </div>
+        <div class="fg" style="max-width:200px;"><label>Spots revenue (auto)</label><input id="sh-srev" type="number" readonly style="opacity:.7;"></div>
+        <div class="g3">
+          <div class="fg"><label>Pack / box cost (CA$)</label><input id="sh-pc" type="number" step="0.01" placeholder="0.00"></div>
+          <div class="fg"><label>Other costs (CA$)</label><input id="sh-oc" type="number" step="0.01" placeholder="0.00"></div>
+          <div class="fg"><label>Tips at time of show (CA$)</label><input id="sh-ti" type="number" step="0.01" placeholder="0.00"></div>
+        </div>
+      </div>
+      <div class="fg"><label>Notes</label><textarea id="sh-no" placeholder="Box names, format notes..."></textarea></div>
+      <div class="mf"><button class="btn" onclick="closeMod()">Cancel</button><button class="btn btnp" onclick="saveShow()">Create show</button></div></div>`;
+  } else if(type==='sale'){
+    const avail=D.inv.filter(i=>i.status==='available');
+    const opts=avail.map(i=>`<option value="${i.id}">${i.player} ${i.year||''} ${i.grade?'('+i.gradeCo+' '+i.grade+')':''}</option>`).join('');
+    const showOpts=D.shows.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+    h=`<div class="mo"><div class="mt">Log sale</div>
+      <div class="fg"><label>Link to inventory card (marks it sold)</label><select id="sl-inv" onchange="linkInv(this)"><option value="">-- Manual entry --</option>${opts}</select></div>
+      <div class="g2"><div class="fg"><label>Item name *</label><input id="sl-it" type="text" placeholder="Card description"></div><div class="fg"><label>Sale date</label><input id="sl-dt" type="date" value="${today()}"></div></div>
+      <div class="g3">
+        <div class="fg"><label>Platform</label><select id="sl-pl" onchange="autoFee()"><option>Whatnot</option><option>eBay</option><option>Private</option><option>In-person</option><option>Other</option></select></div>
+        <div class="fg"><label>Sale price (CA$)</label><input id="sl-pr" type="number" step="0.01" placeholder="0.00" oninput="autoFee()"></div>
+        <div class="fg"><label>Platform fees (CA$)</label><input id="sl-fe" type="number" step="0.01" placeholder="0.00"></div>
+      </div>
+      <div class="g3">
+        <div class="fg"><label>Your cost / COGS (CA$)</label><input id="sl-co" type="number" step="0.01" placeholder="0.00"></div>
+        <div class="fg"><label>Buyer username</label><input id="sl-bu" type="text" placeholder="Optional"></div>
+        <div class="fg"><label>Link to show</label><select id="sl-show"><option value="">-- No show --</option>${showOpts}</select></div>
+      </div>
+      <div class="mf"><button class="btn" onclick="closeMod()">Cancel</button><button class="btn btnp" onclick="saveSale()">Log sale</button></div></div>`;
+  }
+  $('modwrap').innerHTML=`<div class="ov" onclick="maybeClose(event)">${h}</div>`;
+
+  // Wire owner-share custom toggle (inventory + bulk modals)
+  ['i-own','b-own'].forEach(id=>{
+    const sel = $(id);
+    if (!sel) return;
+    const wrapId = id + '-custom-wrap';
+    sel.addEventListener('change', () => {
+      const w = $(wrapId);
+      if (w) w.style.display = sel.value === 'custom' ? 'flex' : 'none';
+    });
+  });
+}
+
+function closeMod(){$('modwrap').innerHTML='';}
+function maybeClose(e){if(e.target.classList.contains('ov'))closeMod();}
+function calcSpotsRev(){const s=N($('sh-ss')&&$('sh-ss').value),p=N($('sh-sp')&&$('sh-sp').value);const e=$('sh-srev');if(e)e.value=(s*p).toFixed(2);}
+function autoFee(){
+  const pr=N($('sl-pr')&&$('sl-pr').value),plat=$('sl-pl')&&$('sl-pl').value;if(!pr||!plat)return;
+  let f=D.cfg.wnfee;
+  if(plat==='Private'||plat==='In-person')f=0;
+  else if(plat==='Other')f=D.cfg.othfee;
+  else if(plat==='eBay')f=13.25;
+  const fe=$('sl-fe');if(fe&&!N(fe.value))fe.value=(pr*f/100).toFixed(2);
+}
+function linkInv(sel){
+  const card=D.inv.find(i=>i.id===sel.value);if(!card)return;
+  $('sl-it').value=[card.player,card.year,card.grade?'('+card.gradeCo+' '+card.grade+')':''].filter(Boolean).join(' ');
+  $('sl-co').value=card.cost||'';
+}
+
+// ── SAVE FUNCTIONS ─────────────────────────────────────────────
+async function saveInv(){
+  const pl=$('i-pl').value.trim();if(!pl){alert('Player name required');return;}
+  const ownSel=$('i-own').value;
+  const ownerShare = ownSel==='custom' ? Math.max(0,Math.min(100,N($('i-own-custom').value))) : N(ownSel);
+  showLdr('Adding...');
+  await api({action:'addInventory',data:{
+    player:pl,year:$('i-yr').value,brand:$('i-br').value,cardNum:$('i-cn').value,variation:$('i-vr').value,
+    gradeCo:$('i-gc').value,grade:$('i-gr').value,cert:$('i-ce').value,
+    cost:$('i-co').value,clValue:$('i-cl').value,source:$('i-so').value,
+    cardOwner: ownerShare===0?'partner':ownerShare===50?'joint':'luca', // legacy field
+    ownerShare: String(ownerShare),
+    status:$('i-st').value,notes:$('i-no').value,added:today()
+  }});
+  await loadAll();hideLdr();closeMod();
+}
+
+async function saveBulk(){
+  const box=$('b-box').value.trim(),totalCost=N($('b-cost').value);
+  const ownSel=$('b-own').value;
+  const ownerShare = ownSel==='custom' ? Math.max(0,Math.min(100,N($('b-own-custom').value))) : N(ownSel);
+  const cardOwner = ownerShare===0?'partner':ownerShare===50?'joint':'luca';
+  const lines=$('b-cards').value.trim().split('\n').filter(l=>l.trim());
+  if(!lines.length){alert('Enter at least one card');return;}
+  const perCard=(totalCost/lines.length).toFixed(2);
+  showLdr(`Adding ${lines.length} cards...`);
+  for(const line of lines){
+    const parts=line.split(',').map(s=>s.trim());
+    const gRaw=parts[2]||'',gM=gRaw.match(/^(psa|bgs|sgc|cgc)\s*(.*)/i);
+    await api({action:'addInventory',data:{
+      player:parts[0]||'Unknown',year:parts[1]||'',
+      gradeCo:gM?gM[1].toUpperCase():'Raw',grade:gM?gM[2]:'',
+      clValue:parts[3]||'',cost:perCard,source:'Pack pull',
+      cardOwner: cardOwner, ownerShare: String(ownerShare),
+      status:'available',notes:box,added:today()
+    }});
+  }
+  await loadAll();hideLdr();closeMod();
+}
+
+async function saveShow(){
+  const name=$('sh-n').value.trim();if(!name){alert('Show name required');return;}
+  const sold=N($('sh-ss').value),sp=N($('sh-sp').value);
+  const ownership=$('sh-own').value;
+  const splitOverride = ownership==='solo' ? '0' : '';
+  showLdr('Creating show...');
+  await api({action:'addShow',data:{
+    name,date:$('sh-d').value,type:$('sh-t').value,platform:$('sh-p').value,
+    wnId:$('sh-wid').value,
+    ownership,
+    splitOverride,
+    spotsTotal:N($('sh-st').value),spotsSold:sold,spotPrice:sp,
+    spotsRev:(sold*sp).toFixed(2),
+    packCost:$('sh-pc').value,otherCost:$('sh-oc').value,tips:$('sh-ti').value,
+    notes:$('sh-no').value
+  }});
+  await loadAll();hideLdr();closeMod();
+}
+
+async function saveSale(){
+  const item=$('sl-it').value.trim();if(!item){alert('Item name required');return;}
+  const invId=$('sl-inv').value,showId=$('sl-show')&&$('sl-show').value;
+  showLdr('Logging sale...');
+  await api({action:'addSale',data:{item,date:$('sl-dt').value,platform:$('sl-pl').value,price:$('sl-pr').value,fees:$('sl-fe').value,cost:$('sl-co').value,buyer:$('sl-bu').value,invId,showId}});
+  if(invId) await api({action:'updateInventory',id:invId,data:{status:'sold'}});
+  await loadAll();hideLdr();closeMod();
+}
+
+async function delItem(sheet,id){
+  if(!confirm('Delete this item? Cannot be undone.'))return;
+  const actions={Inventory:'deleteInventory',Shows:'deleteShow',Sales:'deleteSale'};
+  showLdr('Deleting...');
+  await api({action:actions[sheet],id});
+  await loadAll();hideLdr();
+}
+
+// ── IMPORT (now server-side, single call per file) ────────────
+async function doImportMulti(input){
+  const files=Array.from(input.files);
+  if(!files.length) return;
+
+  const res=$('imp-result');
+  res.style.display='block';
+  res.innerHTML=`<div style="background:var(--surface2);border-radius:var(--r);padding:.75rem 1rem;font-size:12px;color:var(--text2);">Reading ${files.length} file${files.length>1?'s':''}...</div>`;
+
+  // Read all files
+  const allTexts = await Promise.all(files.map(file=>
+    new Promise((resolve,reject)=>{
+      const r=new FileReader();
+      r.onload=e=>resolve({text:e.target.result,name:file.name});
+      r.onerror=reject;
+      r.readAsText(file);
+    })
+  ));
+
+  showLdr(`Importing ${files.length} file${files.length>1?'s':''} on the server...`);
+
+  const fileResults = [];
+  let totalSales=0, totalShows=0, totalDupes=0, totalGiveaways=0;
+  const errors=[];
+
+  // One server call per file. The server handles dedup, show grouping, etc.
+  for (const {text, name} of allTexts) {
+    const result = await api({action:'runImport', csvText:text, filename:name});
+    fileResults.push({name, result});
+    if (result && result.success && result.summary) {
+      totalSales    += result.summary.salesImported || 0;
+      totalShows    += result.summary.showsCreated || 0;
+      totalDupes    += result.summary.duplicatesSkipped || 0;
+      totalGiveaways+= result.summary.giveawaysLogged || 0;
+      if (result.summary.errors && result.summary.errors.length) errors.push(...result.summary.errors);
+    } else {
+      errors.push(name + ': ' + (result && result.error ? result.error : 'failed'));
+    }
+  }
+
+  await loadAll();
+  hideLdr();
+
+  if (res) {
+    res.style.display='block';
+    const ok = errors.length === 0;
+    res.innerHTML = `<div style="background:${ok?'var(--green-bg)':'var(--amber-bg)'};color:${ok?'var(--green)':'var(--amber)'};border-radius:var(--r);padding:.75rem 1rem;font-size:12px;font-weight:500;">
+      ${ok?'✓':'⚠'} Import complete — ${totalSales} sales, ${totalShows} new shows, ${totalGiveaways} giveaways logged${totalDupes>0?', '+totalDupes+' duplicates skipped':''}.
+      ${errors.length?'<br><span style="font-weight:400;">Issues:<br>'+errors.slice(0,5).map(e=>'• '+e).join('<br>')+(errors.length>5?'<br>...and '+(errors.length-5)+' more':'')+'</span>':''}
+      <br><span style="font-weight:400;opacity:.85;">Joint/Solo defaults to Joint — review and update solo shows in Show detail.</span>
+    </div>`;
+  }
+}
+
+function renderImpHist(){
+  const el=$('imp-hist');if(!el)return;
+  if(!D.imports.length){el.innerHTML='<div class="es">No imports yet</div>';return;}
+  el.innerHTML='<table><thead><tr><th>File</th><th>Type</th><th>Records</th><th>Date</th></tr></thead><tbody>'+
+    [...D.imports].reverse().map(im=>`<tr><td style="font-size:12px;">${im.filename}</td><td><span class="bx bb">${im.type}</span></td><td>${im.records}</td><td style="font-size:11px;">${im.date}</td></tr>`).join('')+'</tbody></table>';
+}
+
+// ── AUTO-IMPORT STATUS ────────────────────────────────────────
+async function loadAutoStatus(){
+  const el=$('auto-status-body');if(!el)return;
+  el.innerHTML='Loading status...';
+  const r=await api({action:'getAutoStatus'});
+  if(!r||!r.success){el.innerHTML='<span style="color:var(--red)">Could not load status</span>';return;}
+
+  if(!r.configured){
+    el.innerHTML=`<div class="callout">⚙ Auto-import is not yet configured.<br>
+      <strong>One-time setup:</strong> open the Apps Script editor, select <code>setupAutoImport</code> from the function dropdown, and click ▶ Run. After that, drop CSVs into the <strong>CardBiz Inbox</strong> folder in your Drive and they'll import automatically within 15 minutes.</div>`;
+    return;
+  }
+
+  const enabledDot = r.enabled && r.triggerInstalled
+    ? '<span class="status-dot ok"></span>Enabled'
+    : '<span class="status-dot off"></span>Disabled';
+  const last = r.lastRun ? new Date(r.lastRun).toLocaleString() : 'never';
+  const folderLink = r.folderUrl
+    ? `<a href="${r.folderUrl}" target="_blank" style="color:var(--blue);">Open folder ↗</a>`
+    : '';
+
+  el.innerHTML=`
+    <div class="status-row">
+      <div>${enabledDot} · checking every 15 min · ${r.pendingFiles} pending file${r.pendingFiles===1?'':'s'}</div>
+      <div style="display:flex;gap:6px;">
+        ${folderLink ? `<span>${folderLink}</span>` : ''}
+        <button class="btn btns" onclick="runAutoNow()">Run now</button>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:6px;">
+      Last run: ${last} · Notify mode: ${r.notifyMode}
+      ${!r.triggerInstalled ? ' · <span style="color:var(--red)">⚠ trigger missing — re-run setupAutoImport</span>' : ''}
+    </div>`;
+}
+
+async function runAutoNow(){
+  showLdr('Running auto-import now...');
+  const r=await api({action:'runAutoNow'});
+  await loadAll();
+  await loadAutoStatus();
+  hideLdr();
+  if(r&&r.success){
+    if(r.skipped) alert('Auto-import is paused. Re-enable it from Apps Script (resumeAutoImport) before running.');
+    else if(r.filesProcessed===0) alert('No new files in the inbox folder.');
+    else alert('Processed '+r.filesProcessed+' file(s). Check the Imports tab and your email if there were issues.');
+  } else {
+    alert('Run failed: '+(r&&r.error?r.error:'unknown error'));
+  }
+}
+
+// ── SETTINGS ──────────────────────────────────────────────────
+function applySettingsUI(){
+  const c=D.cfg;
+  const sv=(id,v)=>{const e=$(id);if(e)e.value=v;};
+  sv('s-p1',c.p1);sv('s-pct',c.split);sv('s-p2',c.p2);sv('s-pct2',100-c.split);
+  sv('s-val',c.valuationPct);
+  sv('s-jrs',c.jointRecoupShare);
+  sv('s-disc',c.disc);sv('s-wnfee',c.wnfee);sv('s-othfee',c.othfee);
+  sv('s-notify', c.autoImportNotifyMode || 'problems_only');
+  sv('s-rbuyer', c.reimbursementBuyer || '');
+  sv('s-rowed',  c.reimbursementBuyerOwedTo || 'P1');
+  sv('s-prior',  c.priorWorkFee || 0);
+}
+async function saveSettings(){
+  showLdr('Saving...');
+  await api({action:'saveConfig',data:{
+    p1:$('s-p1').value||'Luca',
+    p2:$('s-p2').value||'Matthew Ciampa',
+    split:N($('s-pct').value)||40
+  }});
+  await loadAll();hideLdr();alert('Partner settings saved!');
+}
+async function saveFees(){
+  showLdr('Saving...');
+  await api({action:'saveConfig',data:{
+    valuationPct:N($('s-val').value)||85,
+    jointRecoupShare:N($('s-jrs').value)||50,
+    disc:N($('s-disc').value)||17.5,
+    wnfee:N($('s-wnfee').value)||8,
+    othfee:N($('s-othfee').value)||5
+  }});
+  await loadAll();hideLdr();alert('Saved!');
+}
+async function saveNotify(){
+  const v=$('s-notify').value;
+  showLdr('Saving...');
+  await api({action:'saveConfig',data:{autoImportNotifyMode:v}});
+  await loadAll();hideLdr();alert('Notification mode saved.');
+}
+async function saveReimburse(){
+  const buyer = ($('s-rbuyer').value||'').trim();
+  const owed = $('s-rowed').value || 'P1';
+  const prior = N($('s-prior').value);
+  showLdr('Saving...');
+  await api({action:'saveConfig',data:{
+    reimbursementBuyer: buyer,
+    reimbursementBuyerOwedTo: owed,
+    priorWorkFee: prior.toFixed(2)
+  }});
+  await loadAll();hideLdr();alert('Reimbursement settings saved.');
+}
+
+// ── EVENT DELEGATION FIX ────────────────────────────────────────
+// Apps Script's iframe sandbox can prevent inline onclick="fn()" handlers
+// from finding functions defined in this script. This block reads each
+// element's onclick attribute and rebinds it as a real event listener
+// in this scope, where all the functions DO exist.
+function __bindInlineHandlers(root){
+  if(!root) return;
+  const evts = ['click','change','input','submit'];
+  evts.forEach(ev => {
+    const attr = 'on' + ev;
+    root.querySelectorAll('['+attr+']').forEach(el => {
+      if(el.dataset.__bound === ev) return;
+      const code = el.getAttribute(attr);
+      if(!code) return;
+      el.removeAttribute(attr);
+      el.addEventListener(ev, function(event){
+        try {
+          // eslint-disable-next-line no-new-func
+          (new Function('event', code)).call(el, event);
+        } catch(e){
+          console.error('Inline '+ev+' handler error:', e, code);
+        }
+      });
+      el.dataset.__bound = ev;
+    });
+  });
+}
+// Bind on initial load
+document.addEventListener('DOMContentLoaded', () => __bindInlineHandlers(document));
+if(document.readyState !== 'loading') __bindInlineHandlers(document);
+// Re-bind after every render (renderAll wraps all dynamic UI updates)
+const __origRenderAll = typeof renderAll === 'function' ? renderAll : null;
+if(__origRenderAll){
+  renderAll = function(){
+    const r = __origRenderAll.apply(this, arguments);
+    setTimeout(() => __bindInlineHandlers(document), 0);
+    return r;
+  };
+}
+// Also rebind whenever DOM changes (catches dynamically added buttons)
+const __mo = new MutationObserver(() => __bindInlineHandlers(document));
+__mo.observe(document.body, {childList:true, subtree:true});
+</script>
+</body>
+</html>

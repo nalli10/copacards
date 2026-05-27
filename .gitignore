@@ -1,0 +1,21 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Office lock/temp files
+~$*
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local-only / sensitive
+local.*
+.env
+.env.*
+
+# Claude Code per-project settings (machine-specific)
+.claude/
