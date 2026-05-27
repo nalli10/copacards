@@ -678,11 +678,22 @@ function renderAll(){renderDash();renderInv();renderShows();renderSales();render
 function showPrizesFor(showId){return (D.prizes||[]).filter(p=>p.showId===showId);}
 function showTipsFor(showId){return (D.tips||[]).filter(t=>t.showId===showId);}
 
-// A "manual" prize is one that was entered by the user (default valuationPct = 85).
-// Auto-imported giveaways from the Whatnot CSV are stored with valuationPct = 100
-// and are EXCLUDED from the profit-math valuation total.
+// A "manual" prize is one that counts toward show profit + owner valuation payouts.
+//
+// Decision rule (in priority order):
+//   1. If ownerShare is explicitly set (non-empty), the user has claimed this
+//      prize as a real expense — count it in profit regardless of valuationPct.
+//      This handles the post-import flow where the user assigns an owner to
+//      an auto-imported giveaway. The valuationPct=100 sentinel no longer
+//      blocks reclassification.
+//   2. Otherwise, fall back to the legacy rule: valuationPct ≠ 100 means
+//      manual; vp=100 means it's a still-untouched auto-imported giveaway
+//      and stays excluded from profit math (display-only).
+//   3. Empty/missing valuationPct (legacy data, pre-import era) = manual.
 function isManualPrize(p){
-  // Empty/missing valuationPct → treat as manual (legacy data, pre-import era)
+  // 1. Owner explicitly set → manual
+  if (p.ownerShare !== '' && p.ownerShare !== undefined && p.ownerShare !== null) return true;
+  // 2/3. Owner not set → use the legacy vp rule
   if (p.valuationPct === '' || p.valuationPct === undefined || p.valuationPct === null) return true;
   return N(p.valuationPct) !== 100;
 }
