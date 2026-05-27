@@ -1569,6 +1569,11 @@ function fShows(f,btn){
 let DETAIL_SELECTED_ID = null;
 let DETAIL_PRIZES_OPEN = true;
 
+// Inline-edit state for the prizes list in the show detail modal.
+// Holds the id of the prize currently in edit mode, or null when no
+// edit is in progress. Cleared on save, cancel, or modal close.
+let EDITING_PRIZE_ID = null;
+
 function renderDetailTab(){
   const sel = $('detail-select');
   const cnt = $('detail-count');
@@ -1788,11 +1793,52 @@ function showDetail(showId){
   const prizes=showPrizesFor(showId);
   const tipsArr=showTipsFor(showId);
 
+  const escAttr = (s) => String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const pHTML=prizes.length?prizes.map(p=>{
     const v = N(p.valuation) || N(p.discountedValue);
     const vp = N(p.valuationPct) || N(p.discountPct);
     const oc = N(p.originalCost);
     const os = (p.ownerShare===''||p.ownerShare===undefined||p.ownerShare===null) ? '' : N(p.ownerShare);
+
+    // EDIT MODE — full inline form for this single prize
+    if (p.id === EDITING_PRIZE_ID) {
+      const ownIsCustom = os !== '' && os !== 0 && os !== 50 && os !== 100;
+      return `
+      <div class="prize-summary" style="display:block;border:2px solid var(--blue);background:var(--blue-bg);">
+        <div style="font-size:11px;font-weight:600;color:var(--blue);margin-bottom:8px;">EDITING — change valuation %, owner, or any field</div>
+        <div class="g2">
+          <div class="fg"><label>Card name</label><input id="pe-card" type="text" value="${escAttr(p.card)}"></div>
+          <div class="fg"><label>Winner (@username)</label><input id="pe-win" type="text" value="${escAttr(p.winner||'')}"></div>
+        </div>
+        <div class="g3">
+          <div class="fg"><label>Market value (CA$)</label><input id="pe-mkt" type="number" step="0.01" value="${N(p.marketValue).toFixed(2)}" oninput="calcEditValuation()"></div>
+          <div class="fg"><label>Valuation %</label><input id="pe-vp" type="number" step="0.5" value="${vp}" oninput="calcEditValuation()"></div>
+          <div class="fg"><label>Valuation amount (auto)</label><input id="pe-val" type="number" step="0.01" value="${v.toFixed(2)}" readonly style="opacity:.7;"></div>
+        </div>
+        <div class="g3">
+          <div class="fg"><label>Owner</label>
+            <select id="pe-own" onchange="document.getElementById('pe-own-custom-wrap').style.display=this.value==='custom'?'flex':'none';">
+              <option value="" ${os===''?'selected':''}>(unset)</option>
+              <option value="0" ${os===0?'selected':''}>${D.cfg.p2} 100%</option>
+              <option value="100" ${os===100?'selected':''}>${D.cfg.p1} 100%</option>
+              <option value="50" ${os===50?'selected':''}>Joint 50/50</option>
+              <option value="custom" ${ownIsCustom?'selected':''}>Custom %</option>
+            </select>
+          </div>
+          <div class="fg" id="pe-own-custom-wrap" style="display:${ownIsCustom?'flex':'none'};">
+            <label>${D.cfg.p1}'s %</label>
+            <input id="pe-own-custom" type="number" min="0" max="100" value="${ownIsCustom?os:''}">
+          </div>
+          <div class="fg"><label>Original cost (optional)</label><input id="pe-orig" type="number" step="0.01" value="${oc>0?oc.toFixed(2):''}"></div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:6px;">
+          <button class="btn btns" onclick="cancelPrizeEdit('${showId}')">Cancel</button>
+          <button class="btn btns btnp" onclick="savePrizeEdit('${p.id}','${showId}')">Save</button>
+        </div>
+      </div>`;
+    }
+
+    // READ MODE
     const ownerLabel = os===''?'<span style="color:var(--red)">⚠ owner not set</span>'
                       : os===0?D.cfg.p2+' 100%'
                       : os===100?D.cfg.p1+' 100%'
@@ -1807,6 +1853,7 @@ function showDetail(showId){
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
         <span style="font-weight:600;color:var(--amber);">${fmt(v)}</span>
+        <button class="btn btns" onclick="editPrize('${p.id}','${showId}')">Edit</button>
         <button class="btn btns btnd" onclick="delPrize('${p.id}','${showId}')">×</button>
       </div>
     </div>`;}).join(''):'<div style="font-size:12px;color:var(--text2);padding:6px 0;">No prizes logged yet</div>';
@@ -2006,7 +2053,69 @@ async function delPrize(id,showId){
   if(!confirm('Remove this prize?'))return;
   showLdr('Removing...');
   await api({action:'deletePrize',id});
+  if (EDITING_PRIZE_ID === id) EDITING_PRIZE_ID = null;
   await loadAll();hideLdr();showDetail(showId);
+}
+
+// ── PRIZE INLINE EDIT ─────────────────────────────────────────
+// Auto-recalculates the valuation amount as market value or % changes.
+function calcEditValuation(){
+  const mkt = N($('pe-mkt') && $('pe-mkt').value);
+  const vp  = N($('pe-vp')  && $('pe-vp').value);
+  const v   = $('pe-val');
+  if (v) v.value = (mkt * vp / 100).toFixed(2);
+}
+
+// Enter edit mode for a prize — re-renders the modal with that row as a form
+function editPrize(prizeId, showId){
+  EDITING_PRIZE_ID = prizeId;
+  showDetail(showId);
+}
+
+function cancelPrizeEdit(showId){
+  EDITING_PRIZE_ID = null;
+  showDetail(showId);
+}
+
+async function savePrizeEdit(prizeId, showId){
+  const card = ($('pe-card').value || '').trim();
+  if (!card) { alert('Card name required'); return; }
+  const mkt = N($('pe-mkt').value);
+  const vp  = N($('pe-vp').value);
+  const v   = mkt * vp / 100;
+
+  const ownSel = $('pe-own').value;
+  let ownerShare;
+  if (ownSel === '') {
+    ownerShare = '';
+  } else if (ownSel === 'custom') {
+    ownerShare = String(Math.max(0, Math.min(100, N($('pe-own-custom').value))));
+  } else {
+    ownerShare = String(N(ownSel));
+  }
+
+  const origRaw = $('pe-orig').value;
+  const originalCost = (origRaw === '' || origRaw === null || origRaw === undefined)
+    ? ''
+    : N(origRaw).toFixed(2);
+
+  showLdr('Saving prize...');
+  await api({action:'updatePrize', id:prizeId, data:{
+    card,
+    marketValue: mkt.toFixed(2),
+    valuationPct: String(vp),
+    valuation: v.toFixed(2),
+    // Keep legacy fields in sync so older P&L code paths still work
+    discountPct: String(100 - vp),
+    discountedValue: v.toFixed(2),
+    originalCost: originalCost,
+    ownerShare: ownerShare,
+    winner: ($('pe-win').value || '').trim()
+  }});
+  EDITING_PRIZE_ID = null;
+  await loadAll();
+  hideLdr();
+  showDetail(showId);
 }
 async function addTip(showId){
   const amt=N($('tip-amt').value);if(!amt)return;
@@ -2107,7 +2216,7 @@ function openMod(type){
   });
 }
 
-function closeMod(){$('modwrap').innerHTML='';}
+function closeMod(){$('modwrap').innerHTML=''; EDITING_PRIZE_ID = null;}
 function maybeClose(e){if(e.target.classList.contains('ov'))closeMod();}
 function calcSpotsRev(){const s=N($('sh-ss')&&$('sh-ss').value),p=N($('sh-sp')&&$('sh-sp').value);const e=$('sh-srev');if(e)e.value=(s*p).toFixed(2);}
 function autoFee(){

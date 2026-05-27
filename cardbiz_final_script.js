@@ -111,6 +111,10 @@ function doPost(e) {
         r = addRow('Prizes', body.data);
         logAudit_(user, 'addPrize', 'Prize', r.id, body.data);
         return jsonOut(r);
+      case 'updatePrize':
+        r = updateRow('Prizes', body.id, body.data);
+        logAudit_(user, 'updatePrize', 'Prize', body.id, body.data);
+        return jsonOut(r);
       case 'deletePrize':
         r = deleteRow('Prizes', body.id);
         logAudit_(user, 'deletePrize', 'Prize', body.id, '(deleted)');
