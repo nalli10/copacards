@@ -174,6 +174,7 @@ tr:hover td{background:var(--surface2);}
     <button class="nt" onclick="go('detail')">Detail</button>
     <button class="nt" onclick="go('sales')">Sales</button>
     <button class="nt" onclick="go('import')">Import</button>
+    <button class="nt" onclick="go('audit')">Audit</button>
     <button class="nt" onclick="go('settings')">Settings</button>
   </div>
   <div class="user-chip" id="user-chip"></div>
@@ -325,6 +326,39 @@ tr:hover td{background:var(--surface2);}
   <div class="card"><div class="ch"><span class="ct">Import history</span></div><div id="imp-hist"></div></div>
 </div>
 
+<!-- AUDIT -->
+<div class="pg" id="pg-audit">
+  <div class="card">
+    <div class="ch">
+      <span class="ct">Audit log</span>
+      <span style="font-size:11px;color:var(--text2);" id="audit-count"></span>
+    </div>
+    <div class="callout">Every change made through the app is logged here with the user (Luca or Matt) and a timestamp. Direct edits to the Google Sheet are NOT captured — only changes made through this UI.</div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:.75rem;">
+      <select id="audit-user" onchange="renderAudit()" style="font-size:12px;padding:5px 9px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface);color:var(--text);">
+        <option value="">All users</option>
+      </select>
+      <select id="audit-action" onchange="renderAudit()" style="font-size:12px;padding:5px 9px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface);color:var(--text);">
+        <option value="">All actions</option>
+        <option value="add">Adds</option>
+        <option value="update">Updates</option>
+        <option value="delete">Deletes</option>
+        <option value="run">Imports</option>
+        <option value="save">Config saves</option>
+      </select>
+      <select id="audit-range" onchange="renderAudit()" style="font-size:12px;padding:5px 9px;border-radius:var(--r);border:1px solid var(--border2);background:var(--surface);color:var(--text);">
+        <option value="7">Last 7 days</option>
+        <option value="30" selected>Last 30 days</option>
+        <option value="90">Last 90 days</option>
+        <option value="">All time</option>
+      </select>
+      <button class="btn btns" style="margin-left:auto;" onclick="loadAll()">↻ Refresh</button>
+    </div>
+    <div style="overflow-x:auto;"><table><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Entity</th><th>Details</th></tr></thead><tbody id="audit-body"></tbody></table></div>
+    <div style="font-size:11px;color:var(--text3);margin-top:.5rem;" id="audit-footer"></div>
+  </div>
+</div>
+
 <!-- SETTINGS -->
 <div class="pg" id="pg-settings">
   <div class="card">
@@ -402,6 +436,7 @@ tr:hover td{background:var(--surface2);}
   <button class="mn-btn" onclick="go('detail')"><div class="mn-icon">🔍</div>Detail</button>
   <button class="mn-btn" onclick="go('sales')"><div class="mn-icon">💰</div>Sales</button>
   <button class="mn-btn" onclick="go('import')"><div class="mn-icon">↑</div>Import</button>
+  <button class="mn-btn" onclick="go('audit')"><div class="mn-icon">📜</div>Audit</button>
 </div>
 
 <div id="modwrap"></div>
@@ -410,7 +445,7 @@ tr:hover td{background:var(--surface2);}
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwgEHL6qMiSyd558fKf1ODDcre-mRn-aWjFynylESdfp7j1GxvgSYwTlp5tuW_AOA7Z/exec';
 
-let D = { inv:[], shows:[], sales:[], prizes:[], tips:[], imports:[], cfg:{p1:'Luca',p2:'Matthew Ciampa',split:40,disc:17.5,wnfee:8,othfee:5,valuationPct:85,jointRecoupShare:50,autoImportNotifyMode:'problems_only',reimbursementBuyer:'6ixkilla',reimbursementBuyerOwedTo:'P1',priorWorkFee:0} };
+let D = { inv:[], shows:[], sales:[], prizes:[], tips:[], imports:[], audit:[], cfg:{p1:'Luca',p2:'Matthew Ciampa',split:40,disc:17.5,wnfee:8,othfee:5,valuationPct:85,jointRecoupShare:50,autoImportNotifyMode:'problems_only',reimbursementBuyer:'6ixkilla',reimbursementBuyerOwedTo:'P1',priorWorkFee:0} };
 let CH = {};
 
 // ── AUTH STATE ────────────────────────────────────────────────
@@ -591,6 +626,7 @@ async function loadAll() {
   D.prizes  = data.prizes||[];
   D.tips    = data.tips||[];
   D.imports = data.imports||[];
+  D.audit   = data.audit||[];
   if(data.config){
     D.cfg.p1    = data.config.p1||'Luca';
     D.cfg.p2    = data.config.p2||'Matthew Ciampa';
@@ -632,8 +668,9 @@ function go(id){
   if(id==='settings')applySettingsUI();
   if(id==='import')loadAutoStatus();
   if(id==='detail')renderDetailTab();
+  if(id==='audit')renderAudit();
 }
-function renderAll(){renderDash();renderInv();renderShows();renderSales();renderImpHist();renderDetailTab();}
+function renderAll(){renderDash();renderInv();renderShows();renderSales();renderImpHist();renderDetailTab();renderAudit();}
 
 // ── HELPERS ────────────────────────────────────────────────────
 function showPrizesFor(showId){return (D.prizes||[]).filter(p=>p.showId===showId);}
@@ -2222,6 +2259,106 @@ function renderImpHist(){
   if(!D.imports.length){el.innerHTML='<div class="es">No imports yet</div>';return;}
   el.innerHTML='<table><thead><tr><th>File</th><th>Type</th><th>Records</th><th>Date</th></tr></thead><tbody>'+
     [...D.imports].reverse().map(im=>`<tr><td style="font-size:12px;">${im.filename}</td><td><span class="bx bb">${im.type}</span></td><td>${im.records}</td><td style="font-size:11px;">${im.date}</td></tr>`).join('')+'</tbody></table>';
+}
+
+// ── AUDIT LOG ─────────────────────────────────────────────────
+// Renders the Audit tab. Pulls from D.audit (populated by getAll on
+// each loadAll). Three filters: user, action class, date range.
+// Sorted by timestamp desc, capped at 200 visible rows for perf.
+function renderAudit(){
+  const tb = $('audit-body');
+  if (!tb) return;
+
+  // Populate the user dropdown from distinct values in the data, preserving selection
+  const userSel = $('audit-user');
+  if (userSel) {
+    const currentVal = userSel.value;
+    const seenUsers = new Set();
+    (D.audit || []).forEach(a => { if (a.user) seenUsers.add(a.user); });
+    const userOptions = ['<option value="">All users</option>']
+      .concat([...seenUsers].sort().map(u => `<option value="${u}" ${u===currentVal?'selected':''}>${u}</option>`));
+    userSel.innerHTML = userOptions.join('');
+  }
+
+  const userFilter   = userSel ? userSel.value : '';
+  const actionFilter = $('audit-action') ? $('audit-action').value : '';
+  const rangeFilter  = $('audit-range') ? $('audit-range').value : '30';
+
+  // Range cutoff
+  let cutoffMs = 0;
+  if (rangeFilter && Number(rangeFilter) > 0) {
+    cutoffMs = Date.now() - (Number(rangeFilter) * 24 * 60 * 60 * 1000);
+  }
+
+  // Map of action prefix → readable label + badge class
+  const actionMeta = (action) => {
+    const a = String(action || '').toLowerCase();
+    if (a.startsWith('add'))    return {prefix:'add',    label:action, badge:'bg'};
+    if (a.startsWith('update')) return {prefix:'update', label:action, badge:'bb'};
+    if (a.startsWith('delete')) return {prefix:'delete', label:action, badge:'br'};
+    if (a.startsWith('run'))    return {prefix:'run',    label:action, badge:'bpur'};
+    if (a.startsWith('save'))   return {prefix:'save',   label:action, badge:'bw'};
+    return {prefix:'', label:action, badge:'bp'};
+  };
+
+  // Filter + sort
+  const filtered = (D.audit || [])
+    .filter(a => {
+      if (userFilter && a.user !== userFilter) return false;
+      if (actionFilter) {
+        const meta = actionMeta(a.action);
+        if (meta.prefix !== actionFilter) return false;
+      }
+      if (cutoffMs) {
+        const t = Date.parse(a.timestamp);
+        if (isNaN(t) || t < cutoffMs) return false;
+      }
+      return true;
+    })
+    .sort((a,b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+
+  const cnt = $('audit-count');
+  if (cnt) cnt.textContent = filtered.length + ' entr' + (filtered.length===1?'y':'ies') + (filtered.length < (D.audit||[]).length ? ' (of ' + (D.audit||[]).length + ' total)' : '');
+
+  const footer = $('audit-footer');
+  const SHOW_MAX = 200;
+  if (footer) {
+    footer.textContent = filtered.length > SHOW_MAX
+      ? 'Showing newest ' + SHOW_MAX + ' of ' + filtered.length + ' entries — narrow filters to see more, or open the Audit tab in the Sheet.'
+      : '';
+  }
+
+  if (!filtered.length) {
+    tb.innerHTML = '<tr><td colspan="5"><div class="es">No audit entries match these filters.</div></td></tr>';
+    return;
+  }
+
+  // Format a timestamp: short date + time
+  const fmtTs = (iso) => {
+    const t = Date.parse(iso);
+    if (isNaN(t)) return iso || '—';
+    const d = new Date(t);
+    return d.toLocaleDateString('en-CA',{month:'short',day:'numeric'}) + ' ' +
+           d.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',hour12:false});
+  };
+
+  // Escape HTML in details (it's user-provided JSON / strings)
+  const esc = (s) => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  const slice = filtered.slice(0, SHOW_MAX);
+  tb.innerHTML = slice.map(a => {
+    const meta = actionMeta(a.action);
+    const detailsTrunc = (a.details || '').length > 100
+      ? esc((a.details||'').substring(0,100)) + '…'
+      : esc(a.details||'');
+    return `<tr title="${esc(a.details||'')}">
+      <td style="font-size:11px;color:var(--text2);white-space:nowrap;">${fmtTs(a.timestamp)}</td>
+      <td style="font-size:12px;font-weight:600;">${esc(a.user||'unknown')}</td>
+      <td><span class="bx ${meta.badge}">${esc(meta.label)}</span></td>
+      <td style="font-size:11px;">${esc(a.entityType||'')}${a.entityId?` <span style="color:var(--text3);">·${esc((a.entityId||'').substring(0,8))}</span>`:''}</td>
+      <td style="font-size:11px;color:var(--text2);max-width:380px;overflow:hidden;text-overflow:ellipsis;">${detailsTrunc}</td>
+    </tr>`;
+  }).join('');
 }
 
 // ── AUTO-IMPORT STATUS ────────────────────────────────────────

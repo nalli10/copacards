@@ -56,28 +56,102 @@ function doPost(e) {
     return jsonOut({ success: false, error: 'Not authorized', authRequired: true });
   }
 
+  // Identify the caller for audit logging (PIN label or "Luca (Google)").
+  // Computed once per request so we don't re-walk Script Properties multiple times.
+  const user = getCallerLabel_(body);
+
   try {
+    let r;
     switch(body.action) {
+      // ---- read-only: no audit ----
       case 'getAll':           return jsonOut(getAllData());
-      case 'addInventory':     return jsonOut(addRow('Inventory', body.data));
-      case 'updateInventory':  return jsonOut(updateRow('Inventory', body.id, body.data));
-      case 'deleteInventory':  return jsonOut(deleteRow('Inventory', body.id));
-      case 'addShow':          return jsonOut(addRow('Shows', body.data));
-      case 'updateShow':       return jsonOut(updateRow('Shows', body.id, body.data));
-      case 'deleteShow':       return jsonOut(deleteRow('Shows', body.id));
-      case 'addSale':          return jsonOut(addRow('Sales', body.data));
-      case 'deleteSale':       return jsonOut(deleteRow('Sales', body.id));
-      case 'addPrize':         return jsonOut(addRow('Prizes', body.data));
-      case 'deletePrize':      return jsonOut(deleteRow('Prizes', body.id));
-      case 'addTip':           return jsonOut(addRow('Tips', body.data));
-      case 'logImport':        return jsonOut(addRow('Imports', body.data));
-      case 'saveConfig':       return jsonOut(saveConfig(body.data));
-      // ---- v2 additions ----
-      case 'runImport':        return jsonOut(importWeeklyOrdersCSV(body.csvText, body.filename || 'manual.csv'));
       case 'getAutoStatus':    return jsonOut(getAutoImportStatus());
-      case 'runAutoNow':       return jsonOut(autoImportFromDrive());
       case 'recomputeShows':   return jsonOut(recomputeShowTotals());
-      // ----------------------
+
+      // ---- inventory ----
+      case 'addInventory':
+        r = addRow('Inventory', body.data);
+        logAudit_(user, 'addInventory', 'Inventory', r.id, body.data);
+        return jsonOut(r);
+      case 'updateInventory':
+        r = updateRow('Inventory', body.id, body.data);
+        logAudit_(user, 'updateInventory', 'Inventory', body.id, body.data);
+        return jsonOut(r);
+      case 'deleteInventory':
+        r = deleteRow('Inventory', body.id);
+        logAudit_(user, 'deleteInventory', 'Inventory', body.id, '(deleted)');
+        return jsonOut(r);
+
+      // ---- shows ----
+      case 'addShow':
+        r = addRow('Shows', body.data);
+        logAudit_(user, 'addShow', 'Show', r.id, body.data);
+        return jsonOut(r);
+      case 'updateShow':
+        r = updateRow('Shows', body.id, body.data);
+        logAudit_(user, 'updateShow', 'Show', body.id, body.data);
+        return jsonOut(r);
+      case 'deleteShow':
+        r = deleteRow('Shows', body.id);
+        logAudit_(user, 'deleteShow', 'Show', body.id, '(deleted)');
+        return jsonOut(r);
+
+      // ---- sales ----
+      case 'addSale':
+        r = addRow('Sales', body.data);
+        logAudit_(user, 'addSale', 'Sale', r.id, body.data);
+        return jsonOut(r);
+      case 'deleteSale':
+        r = deleteRow('Sales', body.id);
+        logAudit_(user, 'deleteSale', 'Sale', body.id, '(deleted)');
+        return jsonOut(r);
+
+      // ---- prizes ----
+      case 'addPrize':
+        r = addRow('Prizes', body.data);
+        logAudit_(user, 'addPrize', 'Prize', r.id, body.data);
+        return jsonOut(r);
+      case 'deletePrize':
+        r = deleteRow('Prizes', body.id);
+        logAudit_(user, 'deletePrize', 'Prize', body.id, '(deleted)');
+        return jsonOut(r);
+
+      // ---- tips ----
+      case 'addTip':
+        r = addRow('Tips', body.data);
+        logAudit_(user, 'addTip', 'Tip', r.id, body.data);
+        return jsonOut(r);
+
+      // ---- imports / config ----
+      case 'logImport':
+        r = addRow('Imports', body.data);
+        // No audit: 'Imports' tab is itself the audit log for imports
+        return jsonOut(r);
+      case 'saveConfig':
+        r = saveConfig(body.data);
+        logAudit_(user, 'saveConfig', 'Config', '', body.data);
+        return jsonOut(r);
+
+      // ---- v2 server-side imports ----
+      case 'runImport':
+        r = importWeeklyOrdersCSV(body.csvText, body.filename || 'manual.csv');
+        if (r && r.success && r.summary) {
+          logAudit_(user, 'runImport', 'Import', r.summary.filename, {
+            sales: r.summary.salesImported,
+            shows: r.summary.showsCreated,
+            giveaways: r.summary.giveawaysLogged,
+            dupes: r.summary.duplicatesSkipped,
+            tips: r.summary.tipsLogged
+          });
+        }
+        return jsonOut(r);
+      case 'runAutoNow':
+        r = autoImportFromDrive();
+        if (r && r.success && r.filesProcessed > 0) {
+          logAudit_(user, 'runAutoNow', 'Import', 'auto', r.runSummary);
+        }
+        return jsonOut(r);
+
       default:                 return jsonOut({ success: false, error: 'Unknown action: ' + body.action });
     }
   } catch(err) {
@@ -97,6 +171,7 @@ function setupSheets() {
     Prizes:    ['id','showId','card','marketValue','discountPct','discountedValue','valuationPct','valuation','originalCost','ownerShare','winner','invId','created'],
     Tips:      ['id','showId','fromUser','amt','created'],
     Imports:   ['id','filename','type','records','date'],
+    Audit:     ['id','timestamp','user','action','entityType','entityId','details'],
     Config:    ['key','value']
   };
   // Create sheets that don't exist yet
@@ -292,6 +367,7 @@ function getAllData() {
     prizes:    sheetToObjects('Prizes'),
     tips:      sheetToObjects('Tips'),
     imports:   sheetToObjects('Imports'),
+    audit:     sheetToObjects('Audit'),
     config:    getConfigObj()
   };
 }
@@ -1238,6 +1314,80 @@ function isApiCallAuthorized_(body) {
     if (k.startsWith('pin_') && all[k] === token) return true;
   }
   return false;
+}
+
+// ----------------------------------------------------------------
+// Returns a human-readable label for the caller of an API request.
+// Used by the audit log. NEVER returns the PIN itself — only the
+// configured label (e.g. "Luca", "Matt") or "Luca (Google)" for the
+// owner-session bypass path. Falls back to "unknown" if we can't
+// identify the caller (should not happen post-auth gate).
+// ----------------------------------------------------------------
+function getCallerLabel_(body) {
+  // Owner via Google session (only works when the script.google.com
+  // URL is hit directly with the owner's Google account)
+  try {
+    const email = (Session.getActiveUser().getEmail() || '').toLowerCase();
+    if (email && email === OWNER_EMAIL.toLowerCase()) return 'Luca (Google)';
+  } catch (e) {}
+
+  // PIN-derived label
+  const token = body && body.token ? String(body.token).trim() : '';
+  if (!token) return 'unknown';
+  const props = PropertiesService.getScriptProperties();
+  const all = props.getProperties();
+  for (const k of Object.keys(all)) {
+    if (k.startsWith('pin_') && all[k] === token) {
+      const userKey = k.substring(4);
+      return all['pinLabel_' + userKey] || userKey;
+    }
+  }
+  return 'unknown';
+}
+
+// ============================================================
+// AUDIT LOG
+// ============================================================
+// Writes one row to the Audit sheet for each data-mutating API
+// call. Wrapped in try/catch so an audit-write failure NEVER
+// breaks the underlying action. Details is stringified JSON,
+// truncated to 500 chars to keep the sheet sane.
+//
+// Reads are NOT audited (would flood the log with getAll spam).
+// PINs are NEVER captured — only the user's display label.
+// ----------------------------------------------------------------
+function logAudit_(user, action, entityType, entityId, details) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName('Audit');
+    if (!sheet) {
+      // Lazy-create the tab if setupSheets hasn't been re-run since v3.1
+      sheet = ss.insertSheet('Audit');
+      const headers = ['id','timestamp','user','action','entityType','entityId','details'];
+      sheet.appendRow(headers);
+      sheet.getRange(1,1,1,headers.length).setFontWeight('bold');
+      sheet.setFrozenRows(1);
+    }
+    let detailsStr = '';
+    if (details !== undefined && details !== null) {
+      detailsStr = (typeof details === 'object')
+        ? JSON.stringify(details)
+        : String(details);
+      if (detailsStr.length > 500) detailsStr = detailsStr.substring(0, 497) + '...';
+    }
+    sheet.appendRow([
+      Utilities.getUuid(),
+      new Date().toISOString(),
+      user || 'unknown',
+      action || '',
+      entityType || '',
+      entityId || '',
+      detailsStr
+    ]);
+  } catch (e) {
+    // Swallow — audit must never break the main action
+    Logger.log('Audit write failed: ' + e.message);
+  }
 }
 
 // ============================================================
