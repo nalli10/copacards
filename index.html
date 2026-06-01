@@ -472,6 +472,27 @@ const fmt = n => 'CA$'+N(n).toLocaleString('en-CA',{minimumFractionDigits:2,maxi
 const today = () => new Date().toISOString().split('T')[0];
 const fmtDate = d => { if(!d) return '—'; const t = Date.parse(d); if (isNaN(t)) return d; return new Date(t).toLocaleDateString('en-CA',{year:'numeric',month:'short',day:'numeric'}); };
 
+// Whatnot keeps releasing late-settling orders for ~2 weeks after a show airs.
+// Until that window passes, a show's totals are still filling in as new weekly
+// earnings CSVs are imported, so its numbers should be treated as provisional.
+const SETTLING_WINDOW_DAYS = 14;
+function settleStatus(d){
+  const t = Date.parse(d);
+  if (isNaN(t)) return null;
+  const days = Math.floor((Date.now() - t) / 86400000);
+  if (days < 0) return null;                 // future-dated show
+  return { settling: days < SETTLING_WINDOW_DAYS, days };
+}
+function settleBadge(d){
+  const s = settleStatus(d);
+  if (!s) return '';
+  if (s.settling) {
+    const left = Math.max(1, SETTLING_WINDOW_DAYS - s.days);
+    return `<span class="bx bw" style="background:var(--amber);color:#000;" title="Provisional — sold during the live but some orders may not have settled yet. ~${left} day(s) of settlement window left. Import upcoming weekly CSVs to top this up.">⏳ settling</span>`;
+  }
+  return `<span class="bx" style="background:var(--surface2);color:var(--text2);" title="Past the ~${SETTLING_WINDOW_DAYS}-day settlement window — this total should be final.">✓ final</span>`;
+}
+
 // ── SYNC ──────────────────────────────────────────────────────
 function setSyncStatus(st, msg) {
   const dot=$('sync-dot'), el=$('sync-msg');
@@ -1482,7 +1503,7 @@ function renderShows(filter='all'){
     return `<tr>
       <td><input type="checkbox" class="row-check" data-id="${sh.id}" onchange="onRowCheck(this)" ${checked}></td>
       <td><div style="font-weight:600;font-size:12px;">${sh.name}</div><div style="font-size:10px;color:var(--text2);">${sh.platform||'Whatnot'} · ${sh.type||'break'}</div></td>
-      <td style="font-size:11px;">${fmtDate(sh.date)}</td>
+      <td style="font-size:11px;">${fmtDate(sh.date)}<div style="margin-top:3px;">${settleBadge(sh.date)}</div></td>
       <td>${badge}<div style="margin-top:3px;">${dropdownHTML}</div></td>
       <td style="font-size:11px;">${N(sh.spotsSold)}/${N(sh.spotsTotal)} × ${fmt(sh.spotPrice)}</td>
       <td style="color:var(--green);font-size:11px;">${fmt(pl.tipsTotal)}</td>
@@ -1716,11 +1737,12 @@ function renderDetailPanel(showId){
     <div class="card">
       <div class="ch">
         <div>
-          <span class="ct">${sh.name||'(unnamed)'}</span>
+          <span class="ct">${sh.name||'(unnamed)'}</span> ${settleBadge(sh.date)}
           <div style="font-size:11px;color:var(--text2);margin-top:2px;">${fmtDate(sh.date)} · ${sh.platform||'Whatnot'} · ${sh.type||'break'} · Split ${pl.lucaPct}/${pl.matPct}</div>
         </div>
         <button class="btn btns" onclick="showDetail('${showId}')">Open editor</button>
       </div>
+      ${(settleStatus(sh.date)||{}).settling ? `<div style="font-size:11px;color:var(--amber);background:var(--surface2);border-radius:var(--r);padding:8px 10px;margin-top:8px;">⏳ <strong>Still settling.</strong> Orders from this show keep clearing for ~${SETTLING_WINDOW_DAYS} days, so these totals are provisional and will rise as you import upcoming weekly CSVs. Expect them to run lower than Whatnot's live show total until then.</div>` : ''}
 
       <!-- Headline metrics -->
       <div class="g4">
