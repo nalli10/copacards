@@ -2030,9 +2030,15 @@ function showDetail(showId){
           <div class="fg"><label>Card name</label><input id="pz-card" type="text" placeholder="Messi 2024 Select"></div>
           <div class="fg"><label>Winner (@username)</label><input id="pz-win" type="text" placeholder="buyer123"></div>
         </div>
+        <div class="fg"><label>Prize type</label>
+          <select id="pz-type" onchange="onPrizeTypeChange()">
+            <option value="single">Single Card — ${D.cfg.valuationPct}% valuation</option>
+            <option value="box">Box — 100% valuation</option>
+          </select>
+        </div>
         <div class="g3">
           <div class="fg"><label>Market value (CA$)</label><input id="pz-mkt" type="number" step="0.01" placeholder="200.00" oninput="calcValuation()"></div>
-          <div class="fg"><label>Valuation % (default ${D.cfg.valuationPct}%)</label><input id="pz-vp" type="number" step="0.5" value="${D.cfg.valuationPct}" oninput="calcValuation()"></div>
+          <div class="fg"><label>Valuation % (auto from type — editable)</label><input id="pz-vp" type="number" step="0.5" value="${D.cfg.valuationPct}" oninput="calcValuation()"></div>
           <div class="fg"><label>Valuation amount (auto)</label><input id="pz-val" type="number" step="0.01" placeholder="0.00" style="opacity:.7;" readonly></div>
         </div>
         <div class="g3">
@@ -2070,6 +2076,15 @@ function showDetail(showId){
   if (ownSel) ownSel.addEventListener('change', () => {
     $('pz-own-custom-wrap').style.display = ownSel.value === 'custom' ? 'flex' : 'none';
   });
+}
+
+// Prize type drives the default valuation %: Single Card = configured default (85%),
+// Box = 100%. The % field stays editable for one-off overrides.
+function onPrizeTypeChange(){
+  const t = $('pz-type') ? $('pz-type').value : 'single';
+  const vp = $('pz-vp');
+  if (vp) vp.value = (t === 'box') ? 100 : (N(D.cfg.valuationPct) || 85);
+  calcValuation();
 }
 
 function calcValuation(){
